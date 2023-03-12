@@ -27,23 +27,23 @@ contract HealthRecord {
         nextId = 0;
     }
 
-    modifier ownerOnly(uint id) {
-        require(access[id][msg.sender()] == AccessRight.OWNER, 'Only owner is allowed for this operation');
+    modifier ownerOnly(uint128 id) {
+        require(access[id][msg.sender]== AccessRight.OWNER, 'Only owner is allowed for this operation');
         _;
     }
 
-    modifier viewerOnly(uint id) {
-        require(access[id][msg.sender()] == AccessRight.VIEWER, 'Only viewer is allowed for this operation');
+    modifier viewerOnly(uint128 id) {
+        require(access[id][msg.sender] == AccessRight.VIEWER, 'Only viewer is allowed for this operation');
         _;
     }
     
-    modifier editorOnly(uint id) {
-        require(access[id][msg.sender()] == AccessRight.EDITOR, 'Only editor is allowed for this operation');
+    modifier editorOnly(uint128 id) {
+        require(access[id][msg.sender] == AccessRight.EDITOR, 'Only editor is allowed for this operation');
         _;
     }
     // someone want to create a record, assign a new id to him and make him owner
     function createRecord() public {
-        access[nextId][msg.sender()] = AccessRight.OWNER;
+        access[nextId][msg.sender] = AccessRight.OWNER;
         nextId++;
         emit RecordCreated(nextId);
     }
