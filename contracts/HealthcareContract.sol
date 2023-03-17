@@ -11,10 +11,10 @@ contract HealthcareContract {
 
     mapping(address => Patient) patients;
 
-    event PatientCreated(uint128 id);
-    event MedicalRecordAdded(uint128 id);
-    event RecordAccessAssinged(uint128 id);
-    event RecordAccessRevoked(uint128 id);
+    event PatientCreated(address patient);
+    event MedicalRecordAdded(address patient);
+    event RecordAccessAssinged(address patient, address entity);
+    event RecordAccessRevoked(address patient, address doctor);
 
     function addPatient(string memory name, uint age) public {
         Patient storage patient = patients[msg.sender];
@@ -23,10 +23,12 @@ contract HealthcareContract {
         patient.medicalHistory = new string[](0);
         patient.doctors[msg.sender] = true; // automatically grant access to patient
         patient.insurers[msg.sender] = false; // automatically deny access to patient
+        emit PatientCreated(msg.sender);
     }
 
     function addMedicalRecord(string memory medicalRecord) public {
         patients[msg.sender].medicalHistory.push(medicalRecord);
+        emit MedicalRecordAdded(msg.sender);
     }
 
     function grantAccess(address entity, bool isDoctor) public {
@@ -35,6 +37,7 @@ contract HealthcareContract {
         } else {
             patients[msg.sender].insurers[entity] = true;
         }
+        emit RecordAccessAssinged(msg.sender, entity);
     }
 
     function revokeAccess(address entity, bool isDoctor) public {
@@ -43,6 +46,7 @@ contract HealthcareContract {
         } else {
             patients[msg.sender].insurers[entity] = false;
         }
+        emit RecordAccessRevoked(msg.sender, entity);
     }
 
     // function getPatient()
