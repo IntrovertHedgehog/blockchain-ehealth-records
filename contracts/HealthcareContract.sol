@@ -15,7 +15,7 @@ contract HealthcareContract {
 
     event PatientCreated(address patient);
     event MedicalRecordAdded(address patient);
-    event RecordAccessAssinged(address patient, address entity);
+    event RecordAccessAssigned(address patient, address entity);
     event RecordAccessRevoked(address patient, address doctor);
 
     constructor() {
@@ -77,7 +77,7 @@ contract HealthcareContract {
         } else {
             patients[patientId].insurers[entity] = true;
         }
-        emit RecordAccessAssinged(msg.sender, entity);
+        emit RecordAccessAssigned(msg.sender, entity);
     }
 
     function revokeAccess(uint128 patientId, address entity, bool isDoctor) public patientOnly(patientId) {
@@ -101,5 +101,9 @@ contract HealthcareContract {
             patient.age,
             patient.medicalHistory
         );
+    }
+
+    function checkAllowedDoctor(uint128 patientId, address doctor) public view returns (bool) {
+        return patients[patientId].doctors[doctor];
     }
 }
