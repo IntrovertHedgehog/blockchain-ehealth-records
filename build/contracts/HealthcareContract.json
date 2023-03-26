@@ -179,7 +179,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -203,7 +204,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"patient\",\"type\":\"address\"}],\"name\":\"MedicalRecordAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"patient\",\"type\":\"address\"}],\"name\":\"PatientCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"patient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"entity\",\"type\":\"address\"}],\"name\":\"RecordAccessAssigned\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"patient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"doctor\",\"type\":\"address\"}],\"name\":\"RecordAccessRevoked\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"patientId\",\"type\":\"uint128\"},{\"internalType\":\"string\",\"name\":\"medicalRecord\",\"type\":\"string\"}],\"name\":\"addMedicalRecord\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"age\",\"type\":\"uint256\"}],\"name\":\"addPatient\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"patientId\",\"type\":\"uint128\"},{\"internalType\":\"address\",\"name\":\"doctor\",\"type\":\"address\"}],\"name\":\"checkAllowedDoctor\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"patientId\",\"type\":\"uint128\"}],\"name\":\"getPatient\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"patientId\",\"type\":\"uint128\"},{\"internalType\":\"address\",\"name\":\"entity\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"isDoctor\",\"type\":\"bool\"}],\"name\":\"grantAccess\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"patientId\",\"type\":\"uint128\"},{\"internalType\":\"address\",\"name\":\"entity\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"isDoctor\",\"type\":\"bool\"}],\"name\":\"revokeAccess\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/HealthcareContract.sol\":\"HealthcareContract\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/HealthcareContract.sol\":{\"keccak256\":\"0xfb3e8ab0da6334e843bde35affba3a00d69fa5b7c87f2b20b01efbc1ef9c0c1c\",\"urls\":[\"bzz-raw://12d9a41e69a741382840d5819974f7a26576b91e3b96303e313d4fd5fbbc3bfb\",\"dweb:/ipfs/QmToUivoTCERbKfP6b9AGAAUsCw9yPG5sH3rYnmS5UGcRV\"]}},\"version\":1}",
@@ -15010,12 +15012,13 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x2327A33a6a03e36c2eDFA3E8e247EDB355e7cE0b",
-      "transactionHash": "0x9cf9fe996b5741db40d573cbaa6760425326f9bad8cefa5da0d736673e3e702a"
+      "address": "0x8Fc586629FADb4C6742FD03D53083FBd4cD1F5F0",
+      "transactionHash": "0x48ca81da76e22947da7429d6ea11f2476e3f19d90163f12cc123af37b45d67e1"
     }
   },
   "schemaVersion": "3.4.11",
-  "updatedAt": "2023-03-23T08:35:25.497Z",
+  "updatedAt": "2023-03-24T15:08:12.282Z",
+  "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
     "methods": {},
