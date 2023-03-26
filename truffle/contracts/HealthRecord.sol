@@ -5,8 +5,10 @@ contract HealthRecord {
     struct PatientProfile {
         bool isActive;
         string[] medicalHistory;
-        mapping(address => bool) isDoctor;
-        mapping(address => bool) isInsurer;
+        mapping(address => uint) doctorNumbers;
+        mapping(address => uint) insurerNumbers;
+        address[] doctors;
+        address[] insurers;
         mapping(address => string[]) medicalHistoryCopies;
     }
 
@@ -15,7 +17,7 @@ contract HealthRecord {
     event PatientProfileActivated(address patient);
     event PatientProfileDeactivated(address patient);
     // event PatientProfileCreated(address patient);
-    event PatientProfileRead(address patient, address reader);
+    // event PatientProfileRead(address patient, address reader);
     event PatientProfileCopyUpdated(address patient);
     event PatientProfileOriginalUpdated(address patient, address doctor);
     // event PatientProfileDeleted(address patient);
@@ -35,8 +37,8 @@ contract HealthRecord {
         PatientProfile storage profile = patientProfiles[patientAddress];
         require(
             patientAddress == readerAddress ||
-                profile.isDoctor[readerAddress] ||
-                profile.isInsurer[readerAddress],
+                profile.doctorNumbers[readerAddress] != 0 ||
+                profile.insurerNumbers[readerAddress] != 0,
             "You need read privilege to access this function"
         );
         _;
@@ -45,7 +47,8 @@ contract HealthRecord {
     modifier withUpdatePrivilege(address patientAddress) {
         PatientProfile storage profile = patientProfiles[patientAddress];
         require(
-            patientAddress == msg.sender || profile.isDoctor[msg.sender],
+            patientAddress == msg.sender ||
+                profile.doctorNumbers[msg.sender] != 0,
             "You need update privilege to access this function"
         );
         _;
@@ -59,15 +62,31 @@ contract HealthRecord {
         _;
     }
 
+    function activateProfile() public {
+        PatientProfile storage profile = patientProfiles[msg.sender];
+        profile.isActive = true;
+        if (profile.doctors.length == 0) {
+        profile.doctors.push(address(0));
+        profile.insurers.push(address(0));
+        }
+        emit PatientProfileActivated(msg.sender);
+    }
+
+    function deactivateProfile() public {
+        patientProfiles[msg.sender].isActive = false;
+        emit PatientProfileDeactivated(msg.sender);
+    }
+
     function readProfile(
         address patientAddress,
         bool isOriginal
     )
         public
+        view
+        isActive(patientAddress)
         withReadPrivilege(patientAddress, msg.sender)
         returns (string[] memory)
     {
-        emit PatientProfileRead(patientAddress, msg.sender);
         if (isOriginal || patientAddress == msg.sender) {
             return patientProfiles[patientAddress].medicalHistory;
         } else {
@@ -78,14 +97,10 @@ contract HealthRecord {
         }
     }
 
-    function activateProfile() public {
-        patientProfiles[msg.sender].isActive = true;
-        emit PatientProfileActivated(msg.sender);
-    }
-
-    function deactivateProfile() public {
-        patientProfiles[msg.sender].isActive = false;
-        emit PatientProfileDeactivated(msg.sender);
+    function readCopyProfiles(
+        address accessor
+    ) public view isActive(msg.sender) returns (string[] memory) {
+        return patientProfiles[msg.sender].medicalHistoryCopies[accessor];
     }
 
     function updateOriginalRecord(
@@ -117,8 +132,12 @@ contract HealthRecord {
         address accessorAddress
     ) public view isActive(patientAddress) returns (bool) {
         require(
-            patientProfiles[patientAddress].isDoctor[accessorAddress] ||
-                patientProfiles[patientAddress].isInsurer[accessorAddress],
+            patientProfiles[patientAddress].doctorNumbers[accessorAddress] !=
+                0 ||
+                patientProfiles[patientAddress].insurerNumbers[
+                    accessorAddress
+                ] !=
+                0,
             "This person does not have any access right to this record"
         );
 
@@ -138,24 +157,56 @@ contract HealthRecord {
     }
 
     function assignDoctor(address doctorAddress) public isActive(msg.sender) {
-        patientProfiles[msg.sender].isDoctor[doctorAddress] = true;
+        PatientProfile storage profile = patientProfiles[msg.sender];
+        require(
+            profile.doctorNumbers[doctorAddress] == 0,
+            "This doctor has already been assigned"
+        );
+        profile.doctors.push(doctorAddress);
+        profile.doctorNumbers[doctorAddress] = profile.doctors.length - 1;
         emit PatientProfileDoctorAssigned(msg.sender, doctorAddress);
     }
 
     function assignInsurer(address insurerAddress) public isActive(msg.sender) {
-        patientProfiles[msg.sender].isInsurer[insurerAddress] = true;
+        PatientProfile storage profile = patientProfiles[msg.sender];
+        require(
+            profile.insurerNumbers[insurerAddress] == 0,
+            "This insurer has already been assigned"
+        );
+        profile.insurers.push(insurerAddress);
+        profile.insurerNumbers[insurerAddress] = profile.insurers.length - 1;
         emit PatientProfileInsurerAssigned(msg.sender, insurerAddress);
     }
 
     function revokeDoctor(address doctorAddress) public isActive(msg.sender) {
-        patientProfiles[msg.sender].isDoctor[doctorAddress] = false;
-        delete patientProfiles[msg.sender].medicalHistoryCopies[doctorAddress];
+        PatientProfile storage profile = patientProfiles[msg.sender];
+        require(
+            profile.doctorNumbers[doctorAddress] != 0,
+            "This doctor has not been assigned"
+        );
+        delete profile.doctors[profile.doctorNumbers[doctorAddress]];
+        profile.doctorNumbers[doctorAddress] = 0;
+        delete profile.medicalHistoryCopies[doctorAddress];
         emit PatientProfileDoctorRevoked(msg.sender, doctorAddress);
     }
 
     function revokeInsurer(address insurerAddress) public isActive(msg.sender) {
-        patientProfiles[msg.sender].isInsurer[insurerAddress] = false;
-        delete patientProfiles[msg.sender].medicalHistoryCopies[insurerAddress];
+        PatientProfile storage profile = patientProfiles[msg.sender];
+        require(
+            profile.insurerNumbers[insurerAddress] != 0,
+            "This insurer has not been assigned"
+        );
+        delete profile.insurers[profile.insurerNumbers[insurerAddress]];
+        profile.insurerNumbers[insurerAddress] = 0;
+        delete profile.medicalHistoryCopies[insurerAddress];
         emit PatientProfileInsurerRevoked(msg.sender, insurerAddress);
+    }
+
+    function getDoctors() public view isActive(msg.sender) returns (address[] memory) {
+        return patientProfiles[msg.sender].doctors;
+    }
+
+    function getInsurers() public view isActive(msg.sender) returns (address[] memory) {
+        return patientProfiles[msg.sender].insurers;
     }
 }
