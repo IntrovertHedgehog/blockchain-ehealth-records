@@ -30,8 +30,8 @@ function EthProvider({ children }) {
   useEffect(() => {
     const tryInit = async () => {
       try {
-        const simpleStorage = require("../../contracts/SimpleStorage.json");
-        init(simpleStorage);
+        // const simpleStorage = require("../../contracts/SimpleStorage.json");
+        // init(simpleStorage);
         const healthRecord = require("../../contracts/HealthRecord.json");
         init(healthRecord);
       } catch (err) {

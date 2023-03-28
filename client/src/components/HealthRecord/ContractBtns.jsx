@@ -34,9 +34,14 @@ function ContractBtns() {
         readProfile()
       </button>
 
-      <p>
-        {medicalHistory ? medicalHistory : null}
-      </p>
+      <div style={{ flexDirection: "column" }}>
+        <p>Medical History</p>
+        {
+          medicalHistory ?
+            medicalHistory
+            : <p>No medical records</p>
+        }
+      </div>
 
       <div onClick={updateProfile} className="input-btn">
         write(<input

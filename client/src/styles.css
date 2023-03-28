@@ -114,13 +114,14 @@ hr {
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
-  padding: 0 1rem;
+  padding: 1rem 1rem;
   background-color: var(--gray);
-  border-radius: 0 1rem 1rem 0;
+  border-radius: 1rem 1rem 1rem 1rem;
 }
 
-#App .container .demo .contract-container .btns > * {
-  width: 12rem;
+#App .container .demo .contract-container .btns>* {
+  /* width: 12rem; */
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,12 +133,13 @@ hr {
   cursor: pointer;
 }
 
-#App .container .demo .contract-container .btns > *:hover {
+#App .container .demo .contract-container .btns>*:hover {
   background-color: var(--dark-gray);
 }
 
 #App .container .demo .contract-container .btns .input-btn input {
-  width: 4rem;
+  /* width: 4rem; */
+  width: 100%;
   text-align: center;
   font-family: monospace;
   font-size: 1.2rem;
