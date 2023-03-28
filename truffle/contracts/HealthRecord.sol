@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 contract HealthRecord {
     struct PatientProfile {
         bool isActive;
-        string[] medicalHistory;
-        mapping(address => uint) doctorNumbers;
-        mapping(address => uint) insurerNumbers;
-        address[] doctors;
-        address[] insurers;
-        mapping(address => string[]) medicalHistoryCopies;
+        string[] medicalHistory; // patient's medical history
+        mapping(address => uint) doctorNumbers; // doctor's address mapped to 0 or 1, 0 indicates that he is given access to patient's record, 1 indicates otherwise
+        mapping(address => uint) insurerNumbers; // similar to doctorNumbers
+        address[] doctors; // array to keep track of doctors assigned to the patient
+        address[] insurers; // similar to doctors
+        mapping(address => string[]) medicalHistoryCopies; // doctor and insurer's copies of patient's medical history
     }
 
     mapping(address => PatientProfile) patientProfiles;
@@ -33,6 +33,8 @@ contract HealthRecord {
         );
         _;
     }
+
+    // ensure that only doctors and insurers that have been given access can read the record
     modifier withReadPrivilege(address patientAddress, address readerAddress) {
         PatientProfile storage profile = patientProfiles[patientAddress];
         require(
@@ -44,6 +46,7 @@ contract HealthRecord {
         _;
     }
 
+    // ensure that only doctors and insurers that have been given access can update the record
     modifier withUpdatePrivilege(address patientAddress) {
         PatientProfile storage profile = patientProfiles[patientAddress];
         require(
@@ -54,6 +57,7 @@ contract HealthRecord {
         _;
     }
 
+    // ensure that only the person running the function is the owner (patient)
     modifier ownerOnly(address patientAddress) {
         require(
             patientAddress == msg.sender,
@@ -62,6 +66,7 @@ contract HealthRecord {
         _;
     }
 
+    // instantiate patient
     function activateProfile() public {
         PatientProfile storage profile = patientProfiles[msg.sender];
         profile.isActive = true;
@@ -77,9 +82,10 @@ contract HealthRecord {
         emit PatientProfileDeactivated(msg.sender);
     }
 
+    // view medical history
     function readProfile(
         address patientAddress,
-        bool isOriginal
+        bool isOriginal //redundant???
     )
         public
         view
@@ -87,9 +93,9 @@ contract HealthRecord {
         withReadPrivilege(patientAddress, msg.sender)
         returns (string[] memory)
     {
-        if (isOriginal || patientAddress == msg.sender) {
+        if (isOriginal || patientAddress == msg.sender) { // view original medical history if patient calls the function
             return patientProfiles[patientAddress].medicalHistory;
-        } else {
+        } else { // view copy of medical history if doctor or insurer
             return
                 patientProfiles[patientAddress].medicalHistoryCopies[
                     msg.sender
@@ -97,12 +103,14 @@ contract HealthRecord {
         }
     }
 
+    // patient, doctor or insurer can run this function to read copy of record that doctor or insurer has
     function readCopyProfiles(
         address accessor
     ) public view isActive(msg.sender) returns (string[] memory) {
         return patientProfiles[msg.sender].medicalHistoryCopies[accessor];
     }
 
+    // add new record to patient's record
     function updateOriginalRecord(
         address patientAddress,
         string calldata newRecord
@@ -111,6 +119,7 @@ contract HealthRecord {
         emit PatientProfileOriginalUpdated(patientAddress, msg.sender);
     }
 
+    // add new record to doctor's or insurer's record, assume that the new record already exists or will exist in the patient's record
     function updateCopyRecord(
         address patientAddress,
         address readerAddress,
@@ -127,6 +136,7 @@ contract HealthRecord {
         emit PatientProfileCopyUpdated(patientAddress);
     }
 
+    // checking that everything in doctor's or insurer's record is already in patient's record
     function copyRecordIsUpdated(
         address patientAddress,
         address accessorAddress
@@ -204,9 +214,5 @@ contract HealthRecord {
 
     function getDoctors() public view isActive(msg.sender) returns (address[] memory) {
         return patientProfiles[msg.sender].doctors;
-    }
-
-    function getInsurers() public view isActive(msg.sender) returns (address[] memory) {
-        return patientProfiles[msg.sender].insurers;
     }
 }
