@@ -10,9 +10,20 @@ contract HealthRecord {
         address[] doctors; // array to keep track of doctors assigned to the patient
         address[] insurers; // similar to doctors
         mapping(address => string[]) medicalHistoryCopies; // doctor and insurer's copies of patient's medical history
+        bool isInsuredCI;
+    }
+
+    //added insurer struct *
+    struct Insurer {
+        mapping(address => string) criticalIllness;
+        mapping(address => bool) validityCI; 
+
+        mapping(address => string) diability;
+        mapping(address => bool) validityDisability; 
     }
 
     mapping(address => PatientProfile) patientProfiles;
+    mapping(address => Insurer) insurerProfiles; //new
 
     event PatientProfileActivated(address patient);
     event PatientProfileDeactivated(address patient);
@@ -33,6 +44,8 @@ contract HealthRecord {
         );
         _;
     }
+
+    //add modifier for checking active insurer profile *
 
     // ensure that only doctors and insurers that have been given access can read the record
     modifier withReadPrivilege(address patientAddress, address readerAddress) {
@@ -76,6 +89,8 @@ contract HealthRecord {
         }
         emit PatientProfileActivated(msg.sender);
     }
+
+    // instantiate insurer *
 
     function deactivateProfile() public {
         patientProfiles[msg.sender].isActive = false;
@@ -215,4 +230,29 @@ contract HealthRecord {
     function getDoctors() public view isActive(msg.sender) returns (address[] memory) {
         return patientProfiles[msg.sender].doctors;
     }
+
+    // function purchaseCICoverage(address payable insurer) public payable isActive(msg.sender) {
+    //     //check if the insurer is assigned to patient
+    //     require();
+    //     insurer.transfer(msg.value);
+    //     PatientProfile storage profile = patientProfiles[msg.sender];
+    //     profile.isInsuredCI = true;
+    // }
+
+    // function submitCriticalIllness(address insurer, uint recordIndex) {
+    //     string[] medicalrecords = readProfile(msg.sender, true);
+    //     string record = medicalrecords[recordIndex];
+    //     //update mapping for claim under insurer
+    //     Insurer storage agent= InsurerProfiles[insurer];
+    //     agent.criticalIllness[msg.sender] = record
+
+    //     //update medicalhistorycopy with record 
+
+    // }
+    
+    // function validateCIClaim(address patient) {
+    //     //check that insurer is in charge of patient
+    // }
+
+    
 }
