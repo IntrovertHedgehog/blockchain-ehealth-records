@@ -11,7 +11,7 @@ function ContractBtns() {
   };
 
   const readProfile = async () => {
-    const retrievedMedicalHistory = await contract.methods.readProfile(accounts[0]).call({ from: accounts[0] });
+    const retrievedMedicalHistory = await contract.methods.readProfile(accounts[0], true).call({ from: accounts[0] });
     setMedicalHistory(retrievedMedicalHistory);
     console.log(retrievedMedicalHistory);
   };
@@ -24,11 +24,19 @@ function ContractBtns() {
       alert("Please enter a value to write.");
       return;
     }
+    console.log(accounts[0]);
+    console.log(newRecord);
     await contract.methods.updateProfile(accounts[0], newRecord).send({ from: accounts[0] });
   };
 
-  const toggleProfile = async (e) => {
-    console.log("Toggle Profile");
+  const activateProfile = async (e) => {
+    console.log("activate Profile");
+    await contract.methods.activateProfile().send({ from: accounts[0] });
+  };
+
+  const deactivateProfile = async (e) => {
+    console.log("deactivate Profile");
+    await contract.methods.deactivateProfile().send({ from: accounts[0] });
   };
 
   return (
@@ -38,9 +46,14 @@ function ContractBtns() {
           Read My Profile
         </button>
 
-        <button onClick={toggleProfile} style={{ marginLeft: 10 }}>
-          Activate / Deactivate Profile
+        <button onClick={activateProfile} style={{ marginLeft: 10 }}>
+          Activate Profile
         </button>
+
+        <button onClick={deactivateProfile} style={{ marginLeft: 10 }}>
+          Deactivate Profile
+        </button>
+
       </div>
 
       <div style={{ flexDirection: "column" }}>
