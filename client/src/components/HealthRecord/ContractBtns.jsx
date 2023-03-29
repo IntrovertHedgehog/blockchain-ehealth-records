@@ -27,12 +27,21 @@ function ContractBtns() {
     await contract.methods.updateProfile(accounts[0], newRecord).send({ from: accounts[0] });
   };
 
+  const toggleProfile = async (e) => {
+    console.log("Toggle Profile");
+  };
+
   return (
     <div className="btns">
+      <div>
+        <button onClick={readProfile} style={{ marginRight: 10 }}>
+          Read My Profile
+        </button>
 
-      <button onClick={readProfile}>
-        readProfile()
-      </button>
+        <button onClick={toggleProfile} style={{ marginLeft: 10 }}>
+          Activate / Deactivate Profile
+        </button>
+      </div>
 
       <div style={{ flexDirection: "column" }}>
         <p>Medical History</p>
@@ -43,16 +52,21 @@ function ContractBtns() {
         }
       </div>
 
-      <div onClick={updateProfile} className="input-btn">
-        write(<input
+      <div className="input-btn">
+        <input
           type="text"
-          placeholder="uint"
+          placeholder="New Record"
           value={newRecord}
           onChange={handleInputChange}
-        />)
+        />
+
+        <button onClick={updateProfile}>
+          Update Profile
+        </button>
+
       </div>
 
-    </div>
+    </div >
   );
 }
 

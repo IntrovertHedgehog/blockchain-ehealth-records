@@ -1,5 +1,5 @@
 function Title() {
-  return <h2>See it in action</h2>;
+  return <h2>Patient View</h2>;
 }
 
 export default Title;

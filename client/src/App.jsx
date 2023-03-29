@@ -1,5 +1,6 @@
 import { EthProvider } from "./contexts/EthContext";
 import HealthRecord from "./components/HealthRecord";
+import DoctorInterface from "./components/DoctorInterface";
 
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
       <div id="App">
         <div className="container">
           <HealthRecord />
+          <DoctorInterface />
         </div>
       </div>
     </EthProvider>
