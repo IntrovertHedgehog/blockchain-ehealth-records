@@ -1,17 +1,20 @@
 import React from 'react'
 import { useState } from "react";
+import useEth from "../../contexts/EthContext/useEth";
 
 function DoctorRequest() {
-
+    const { state: { contract, accounts } } = useEth();
     const [patientAddress, setPatientAddress] = useState("");
-    const [patientMedicalHistory, setPatientMedicalHistory] = useState("");
+    const [patientMedicalHistory, setPatientMedicalHistory] = useState([]);
 
-    const handleInputChange = e => {
+    const handlePatientAddressChange = e => {
         setPatientAddress(e.target.value);
     };
 
-    const retrieveRecords = async (e) => {
-        console.log("Retrieve Records");
+    const retrieveRecords = async () => {
+        const retrievedPatientMedicalHistory = await contract.methods.readProfile(patientAddress, true).call({ from: accounts[0] });
+        console.log(retrievedPatientMedicalHistory);
+        setPatientMedicalHistory(retrievedPatientMedicalHistory);
     };
 
     return (
@@ -31,7 +34,7 @@ function DoctorRequest() {
                     type="text"
                     placeholder="Patient Address"
                     value={patientAddress}
-                    onChange={handleInputChange}
+                    onChange={handlePatientAddressChange}
                 />
 
                 <button onClick={retrieveRecords}>

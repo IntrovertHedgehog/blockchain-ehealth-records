@@ -5,9 +5,14 @@ function ContractBtns() {
   const { state: { contract, accounts } } = useEth();
   const [medicalHistory, setMedicalHistory] = useState("");
   const [newRecord, setNewRecord] = useState("");
+  const [doctorAddress, setDoctorAddress] = useState("");
 
-  const handleInputChange = e => {
+  const handleNewRecordChange = e => {
     setNewRecord(e.target.value);
+  };
+
+  const handleDoctorAddressChange = e => {
+    setDoctorAddress(e.target.value);
   };
 
   const readProfile = async () => {
@@ -26,8 +31,19 @@ function ContractBtns() {
     }
     console.log(accounts[0]);
     console.log(newRecord);
-    await contract.methods.updateProfile(accounts[0], newRecord).send({ from: accounts[0] });
+    await contract.methods.updateOriginalRecord(accounts[0], newRecord).send({ from: accounts[0] });
   };
+
+  const assignDoctor = async e => {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    if (doctorAddress === "") {
+      alert("Please enter a value to write.");
+      return;
+    }
+    await contract.methods.assignDoctor(doctorAddress).send({ from: accounts[0] });
+  }
 
   const activateProfile = async (e) => {
     console.log("activate Profile");
@@ -70,13 +86,23 @@ function ContractBtns() {
           type="text"
           placeholder="New Record"
           value={newRecord}
-          onChange={handleInputChange}
+          onChange={handleNewRecordChange}
         />
-
         <button onClick={updateProfile}>
           Update Profile
         </button>
+      </div>
 
+      <div className="input-btn">
+        <input
+          type="text"
+          placeholder="Doctor's Address"
+          value={doctorAddress}
+          onChange={handleDoctorAddressChange}
+        />
+        <button onClick={assignDoctor}>
+          Assign Doctor
+        </button>
       </div>
 
     </div >
