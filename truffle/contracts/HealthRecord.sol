@@ -3,27 +3,30 @@ pragma solidity ^0.8.0;
 
 contract HealthRecord {
     struct PatientProfile {
-        bool isActive;
+        bool patientIsActive;
         string[] medicalHistory; // patient's medical history
         mapping(address => uint) doctorNumbers; // doctor's address mapped to 0 or 1, 0 indicates that he is given access to patient's record, 1 indicates otherwise
         mapping(address => uint) insurerNumbers; // similar to doctorNumbers
         address[] doctors; // array to keep track of doctors assigned to the patient
         address[] insurers; // similar to doctors
         mapping(address => string[]) medicalHistoryCopies; // doctor and insurer's copies of patient's medical history
-        bool isInsuredCI;
+        bool isInsuredCI; //checks if patient is insured for critical illness
     }
 
     //added insurer struct *
-    struct Insurer {
-        mapping(address => string) criticalIllness;
-        mapping(address => bool) validityCI; 
+    struct InsurerProfile {
+        bool insurerIsActive;
+        mapping(address => uint) criticalIllness; // mapping to store patient's addresses that have critical illness coverage
+        mapping(address => string) recordCI; // mappign to store patient's relevant record when submitting a claim for critial illness
+        mapping(address => bool) validityCI;
 
-        mapping(address => string) diability;
-        mapping(address => bool) validityDisability; 
+        // focus on CI for now, before expanding to disability
+        // mapping(address => string) disability;
+        // mapping(address => bool) validityDisability; 
     }
 
     mapping(address => PatientProfile) patientProfiles;
-    mapping(address => Insurer) insurerProfiles; //new
+    mapping(address => InsurerProfile) insurerProfiles; //new
 
     event PatientProfileActivated(address patient);
     event PatientProfileDeactivated(address patient);
@@ -37,9 +40,11 @@ contract HealthRecord {
     event PatientProfileDoctorRevoked(address patient, address doctor);
     event PatientProfileInsurerRevoked(address patient, address insurer);
 
-    modifier isActive(address patientAddress) {
+    event InsurerProfileActivated(address insurer);
+
+    modifier patientIsActive(address patientAddress) {
         require(
-            patientProfiles[patientAddress].isActive,
+            patientProfiles[patientAddress].patientIsActive,
             "This profile is not active."
         );
         _;
@@ -79,10 +84,33 @@ contract HealthRecord {
         _;
     }
 
+    modifier insurerIsActive(address insurerAddress) {
+        require(
+            insurerProfiles[insurerAddress].insurerIsActive,
+            "This profile is not active."
+        );
+        _;
+    }
+
+    // ensures that patient is insured for critical illness with the correct insurance agent
+    modifier isInsuredCI(address patientAddress, address insurerAddress) {
+        PatientProfile storage profile = patientProfiles[patientAddress];
+        require(
+            profile.isInsuredCI == true,
+            "You need to be insured for critical illness to access this function"
+        );
+        InsurerProfile storage insurer = insurerProfiles[insurerAddress];
+        require(
+            insurer.criticalIllness[patientAddress] == 1,
+            "You do not have critical illness coverage under this insurance agent"
+        );
+        _;
+    }
+
     // instantiate patient
-    function activateProfile() public {
+    function activatePatientProfile() public {
         PatientProfile storage profile = patientProfiles[msg.sender];
-        profile.isActive = true;
+        profile.patientIsActive = true;
         if (profile.doctors.length == 0) {
         profile.doctors.push(address(0));
         profile.insurers.push(address(0));
@@ -90,10 +118,16 @@ contract HealthRecord {
         emit PatientProfileActivated(msg.sender);
     }
 
+    function activateInsurerProfile() public {
+        InsurerProfile storage insurerProfile = insurerProfiles[msg.sender];
+        insurerProfile.insurerIsActive = true;
+        emit InsurerProfileActivated(msg.sender);
+    }
+
     // instantiate insurer *
 
     function deactivateProfile() public {
-        patientProfiles[msg.sender].isActive = false;
+        patientProfiles[msg.sender].patientIsActive = false;
         emit PatientProfileDeactivated(msg.sender);
     }
 
@@ -104,7 +138,7 @@ contract HealthRecord {
     )
         public
         view
-        isActive(patientAddress)
+        patientIsActive(patientAddress)
         withReadPrivilege(patientAddress, msg.sender)
         returns (string[] memory)
     {
@@ -121,7 +155,7 @@ contract HealthRecord {
     // patient, doctor or insurer can run this function to read copy of record that doctor or insurer has
     function readCopyProfiles(
         address accessor
-    ) public view isActive(msg.sender) returns (string[] memory) {
+    ) public view patientIsActive(msg.sender) returns (string[] memory) {
         return patientProfiles[msg.sender].medicalHistoryCopies[accessor];
     }
 
@@ -129,7 +163,7 @@ contract HealthRecord {
     function updateOriginalRecord(
         address patientAddress,
         string calldata newRecord
-    ) public isActive(patientAddress) withUpdatePrivilege(patientAddress) {
+    ) public patientIsActive(patientAddress) withUpdatePrivilege(patientAddress) {
         patientProfiles[patientAddress].medicalHistory.push(newRecord);
         emit PatientProfileOriginalUpdated(patientAddress, msg.sender);
     }
@@ -141,7 +175,7 @@ contract HealthRecord {
         string calldata newRecord
     )
         public
-        isActive(patientAddress)
+        patientIsActive(patientAddress)
         ownerOnly(patientAddress)
         withReadPrivilege(patientAddress, readerAddress)
     {
@@ -155,7 +189,7 @@ contract HealthRecord {
     function copyRecordIsUpdated(
         address patientAddress,
         address accessorAddress
-    ) public view isActive(patientAddress) returns (bool) {
+    ) public view patientIsActive(patientAddress) returns (bool) {
         require(
             patientProfiles[patientAddress].doctorNumbers[accessorAddress] !=
                 0 ||
@@ -181,7 +215,7 @@ contract HealthRecord {
         return (originalLength == copyLength);
     }
 
-    function assignDoctor(address doctorAddress) public isActive(msg.sender) {
+    function assignDoctor(address doctorAddress) public patientIsActive(msg.sender) {
         PatientProfile storage profile = patientProfiles[msg.sender];
         require(
             profile.doctorNumbers[doctorAddress] == 0,
@@ -192,7 +226,7 @@ contract HealthRecord {
         emit PatientProfileDoctorAssigned(msg.sender, doctorAddress);
     }
 
-    function assignInsurer(address insurerAddress) public isActive(msg.sender) {
+    function assignInsurer(address insurerAddress) public patientIsActive(msg.sender) {
         PatientProfile storage profile = patientProfiles[msg.sender];
         require(
             profile.insurerNumbers[insurerAddress] == 0,
@@ -203,7 +237,7 @@ contract HealthRecord {
         emit PatientProfileInsurerAssigned(msg.sender, insurerAddress);
     }
 
-    function revokeDoctor(address doctorAddress) public isActive(msg.sender) {
+    function revokeDoctor(address doctorAddress) public patientIsActive(msg.sender) {
         PatientProfile storage profile = patientProfiles[msg.sender];
         require(
             profile.doctorNumbers[doctorAddress] != 0,
@@ -215,7 +249,7 @@ contract HealthRecord {
         emit PatientProfileDoctorRevoked(msg.sender, doctorAddress);
     }
 
-    function revokeInsurer(address insurerAddress) public isActive(msg.sender) {
+    function revokeInsurer(address insurerAddress) public patientIsActive(msg.sender) {
         PatientProfile storage profile = patientProfiles[msg.sender];
         require(
             profile.insurerNumbers[insurerAddress] != 0,
@@ -227,17 +261,31 @@ contract HealthRecord {
         emit PatientProfileInsurerRevoked(msg.sender, insurerAddress);
     }
 
-    function getDoctors() public view isActive(msg.sender) returns (address[] memory) {
+    function getDoctors() public view patientIsActive(msg.sender) returns (address[] memory) {
         return patientProfiles[msg.sender].doctors;
     }
 
-    // function purchaseCICoverage(address payable insurer) public payable isActive(msg.sender) {
+    // function purchaseCICoverage(address payable insurer) public payable patientIsActive(msg.sender) {
     //     //check if the insurer is assigned to patient
     //     require();
     //     insurer.transfer(msg.value);
     //     PatientProfile storage profile = patientProfiles[msg.sender];
     //     profile.isInsuredCI = true;
     // }
+
+    // patient purchase critical illness coverage from insurance agent
+    function purchaseCICoverage(address payable insurerAddress) public payable patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
+        PatientProfile storage profile = patientProfiles[msg.sender];
+        require(
+            profile.insurerNumbers[insurerAddress] == 0,
+            "This insurer has already been assigned"
+        );
+        InsurerProfile storage insurer = insurerProfiles[insurerAddress];
+        insurer.criticalIllness[msg.sender] = 1;
+        insurerAddress.transfer(msg.value);
+        assignInsurer(insurerAddress);
+        profile.isInsuredCI = true;
+    }
 
     // function submitCriticalIllness(address insurer, uint recordIndex) {
     //     string[] medicalrecords = readProfile(msg.sender, true);
@@ -249,6 +297,16 @@ contract HealthRecord {
     //     //update medicalhistorycopy with record 
 
     // }
+
+    
+    function submitCritialIllness(address insurerAddress, uint recordIndex) public isInsuredCI(msg.sender, insurerAddress) patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
+        PatientProfile storage profile = patientProfiles[msg.sender];
+        InsurerProfile storage insurer = insurerProfiles[insurerAddress];
+        string[] memory medicalRecords = readProfile(msg.sender, true);
+        string memory relevantRecord = medicalRecords[recordIndex];
+        insurer.recordCI[msg.sender] = relevantRecord;
+        // updateCopyRecord(msg.sender, insurerAddress, relevantRecord); // this line gives error because updateCopyRecord only accepts calldata not memory
+    }
     
     // function validateCIClaim(address patient) {
     //     //check that insurer is in charge of patient
