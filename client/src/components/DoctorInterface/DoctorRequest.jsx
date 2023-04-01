@@ -6,9 +6,14 @@ function DoctorRequest() {
     const { state: { contract, accounts } } = useEth();
     const [patientAddress, setPatientAddress] = useState("");
     const [patientMedicalHistory, setPatientMedicalHistory] = useState([]);
+    const [updateProfileCopyRecords, setUpdateProfileCopyRecords] = useState("");
 
     const handlePatientAddressChange = e => {
         setPatientAddress(e.target.value);
+    };
+
+    const handleUpdateProfileCopyRecord = e => {
+        setUpdateProfileCopyRecords(e.target.value);
     };
 
     const retrieveRecords = async () => {
@@ -16,6 +21,10 @@ function DoctorRequest() {
         console.log(retrievedPatientMedicalHistory);
         setPatientMedicalHistory(retrievedPatientMedicalHistory);
     };
+
+    const updateProfile = async () => {
+        await contract.methods.updateCopyRecord(patientAddress, accounts[0], updateProfileCopyRecords).send({ from: accounts[0] });
+    }
 
     return (
         <div className='btns'>
@@ -40,7 +49,24 @@ function DoctorRequest() {
                 <button onClick={retrieveRecords}>
                     Retrieve Records
                 </button>
+            </div>
 
+            <div className="input-btn">
+                <input
+                    type="text"
+                    placeholder="Patient Address"
+                    value={patientAddress}
+                    onChange={handlePatientAddressChange}
+                />
+                <input
+                    type="text"
+                    placeholder="New Record (Copy)"
+                    value={updateProfileCopyRecords}
+                    onChange={handleUpdateProfileCopyRecord}
+                />
+                <button onClick={updateProfile}>
+                    Update Profile (Copy)
+                </button>
             </div>
         </div>
     )

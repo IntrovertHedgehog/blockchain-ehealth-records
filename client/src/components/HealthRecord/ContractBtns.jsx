@@ -4,35 +4,35 @@ import useEth from "../../contexts/EthContext/useEth";
 function ContractBtns() {
   const { state: { contract, accounts } } = useEth();
   const [medicalHistory, setMedicalHistory] = useState("");
-  const [newRecord, setNewRecord] = useState("");
+  const [medicalHistoryCopy, setMedicalHistoryCopy] = useState("");
+  const [updateProfileRecords, setUpdateProfileRecords] = useState("");
   const [doctorAddress, setDoctorAddress] = useState("");
+  const [patientAddress, setPatientAddress] = useState("");
 
-  const handleNewRecordChange = e => {
-    setNewRecord(e.target.value);
+  const handleUpdateProfileRecord = e => {
+    setUpdateProfileRecords(e.target.value);
   };
 
   const handleDoctorAddressChange = e => {
     setDoctorAddress(e.target.value);
   };
 
-  const readProfile = async () => {
-    const retrievedMedicalHistory = await contract.methods.readProfile(accounts[0], true).call({ from: accounts[0] });
-    setMedicalHistory(retrievedMedicalHistory);
-    console.log(retrievedMedicalHistory);
+  const readProfile = async (isCopy) => {
+    if (!isCopy) {
+      const retrievedMedicalHistory = await contract.methods.readProfile(accounts[0], true).call({ from: accounts[0] });
+      setMedicalHistory(retrievedMedicalHistory);
+      console.log(retrievedMedicalHistory);
+    } else {
+      const retrievedMedicalHistoryCopy = await contract.methods.readCopyProfiles(accounts[0]).call({ from: accounts[0] });
+      setMedicalHistoryCopy(retrievedMedicalHistoryCopy);
+      console.log(retrievedMedicalHistoryCopy);
+    }
   };
 
-  const updateProfile = async e => {
-    if (e.target.tagName === "INPUT") {
-      return;
-    }
-    if (newRecord === "") {
-      alert("Please enter a value to write.");
-      return;
-    }
-    console.log(accounts[0]);
-    console.log(newRecord);
-    await contract.methods.updateOriginalRecord(accounts[0], newRecord).send({ from: accounts[0] });
-  };
+  const updateProfile = async () => {
+    console.log(updateProfileRecords);
+    await contract.methods.updateOriginalRecord(accounts[0], updateProfileRecords).send({ from: accounts[0] });
+  }
 
   const assignDoctor = async e => {
     if (e.target.tagName === "INPUT") {
@@ -58,8 +58,12 @@ function ContractBtns() {
   return (
     <div className="btns">
       <div>
-        <button onClick={readProfile} style={{ marginRight: 10 }}>
+        <button onClick={readProfile(false)} style={{ marginRight: 10 }}>
           Read My Profile
+        </button>
+
+        <button onClick={readProfile(true)} style={{ marginRight: 10 }}>
+          Read My Profile Copies
         </button>
 
         <button onClick={activateProfile} style={{ marginLeft: 10 }}>
@@ -81,12 +85,21 @@ function ContractBtns() {
         }
       </div>
 
+      <div style={{ flexDirection: "column" }}>
+        <p>Medical History Copy</p>
+        {
+          medicalHistoryCopy ?
+            medicalHistoryCopy
+            : <p>No medical records</p>
+        }
+      </div>
+
       <div className="input-btn">
         <input
           type="text"
           placeholder="New Record"
-          value={newRecord}
-          onChange={handleNewRecordChange}
+          value={updateProfileRecords}
+          onChange={handleUpdateProfileRecord}
         />
         <button onClick={updateProfile}>
           Update Profile
