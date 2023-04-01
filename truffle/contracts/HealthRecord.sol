@@ -176,7 +176,7 @@ contract HealthRecord {
     function updateCopyRecord(
         address patientAddress,
         address readerAddress,
-        string calldata newRecord
+        string memory newRecord
     )
         public
         patientIsActive(patientAddress)
@@ -280,15 +280,17 @@ contract HealthRecord {
     // patient purchase critical illness coverage from insurance agent
     function purchaseCICoverage(address payable insurerAddress) public payable patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
         PatientProfile storage profile = patientProfiles[msg.sender];
+        // require(
+        //     profile.insurerNumbers[insurerAddress] == 0,
+        //     "This insurer has already been assigned"
+        // ); // i thought we are checking if insurer is assigned to the patient because patients can only purchase coverage from insurers assigned to them
         require(
-            profile.insurerNumbers[insurerAddress] == 0,
-            "This insurer has already been assigned"
-        ); // i thought we are checking if insurer is assigned to the patient because patients can only purchase coverage from insurers assigned to them
-        // require(profile.insurerNumbers[insurerAddress] == 1, "Cannot purchase coverage from an insurer not assigned to this patient");
+            profile.insurerNumbers[insurerAddress] == 1, 
+            "Cannot purchase coverage from an insurer not assigned to this patient");
         InsurerProfile storage insurer = insurerProfiles[insurerAddress];
         insurer.criticalIllness[msg.sender] = 1;
         insurerAddress.transfer(msg.value);
-        assignInsurer(insurerAddress); // remove if we are doing the already assigned method
+        // assignInsurer(insurerAddress); // remove if we are doing the already assigned method
         profile.isInsuredCI = true;
         emit CICoveragePurchased(msg.sender, insurerAddress, msg.value);
     }
@@ -305,13 +307,13 @@ contract HealthRecord {
     // }
 
     // Used by patient to submit a CI claim to insurer, along with the medical record
-    function submitCritialIllness(address insurerAddress, uint recordIndex) public isInsuredCI(msg.sender, insurerAddress) patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
+    function submitCriticalIllness(address insurerAddress, uint recordIndex) public isInsuredCI(msg.sender, insurerAddress) patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
         PatientProfile storage profile = patientProfiles[msg.sender];
         InsurerProfile storage insurer = insurerProfiles[insurerAddress];
         string[] memory medicalRecords = readProfile(msg.sender, true);
         string memory relevantRecord = medicalRecords[recordIndex];
         insurer.recordCI[msg.sender] = relevantRecord;
-        // updateCopyRecord(msg.sender, insurerAddress, relevantRecord); // this line gives error because updateCopyRecord only accepts calldata not memory
+        updateCopyRecord(msg.sender, insurerAddress, relevantRecord); // this line gives error because updateCopyRecord only accepts calldata not memory
         emit CIClaimSubmitted(msg.sender, insurerAddress, recordIndex);
     }
     
