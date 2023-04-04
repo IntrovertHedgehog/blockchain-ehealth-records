@@ -4,11 +4,12 @@ import useEth from "../../contexts/EthContext/useEth";
 function ContractBtns() {
   const { state: { contract, accounts } } = useEth();
   const [medicalHistory, setMedicalHistory] = useState("");
-  const [newRecord, setNewRecord] = useState("");
+  const [medicalHistoryCopy, setMedicalHistoryCopy] = useState("");
+  const [updateProfileRecords, setUpdateProfileRecords] = useState("");
   const [doctorAddress, setDoctorAddress] = useState("");
 
-  const handleNewRecordChange = e => {
-    setNewRecord(e.target.value);
+  const handleUpdateProfileRecord = e => {
+    setUpdateProfileRecords(e.target.value);
   };
 
   const handleDoctorAddressChange = e => {
@@ -21,17 +22,23 @@ function ContractBtns() {
     console.log(retrievedMedicalHistory);
   };
 
+  const readCopyProfile = async () => {
+    const retrievedMedicalHistoryCopy = await contract.methods.readCopyProfiles(accounts[0]).call({ from: accounts[0] });
+    setMedicalHistoryCopy(retrievedMedicalHistoryCopy);
+    console.log(retrievedMedicalHistoryCopy);
+  };
+
   const updateProfile = async e => {
     if (e.target.tagName === "INPUT") {
       return;
     }
-    if (newRecord === "") {
+    if (updateProfileRecords === "") {
       alert("Please enter a value to write.");
       return;
     }
     console.log(accounts[0]);
-    console.log(newRecord);
-    await contract.methods.updateOriginalRecord(accounts[0], newRecord).send({ from: accounts[0] });
+    console.log(updateProfileRecords);
+    await contract.methods.updateOriginalRecord(accounts[0], updateProfileRecords).send({ from: accounts[0] });
   };
 
   const assignDoctor = async e => {
@@ -43,6 +50,17 @@ function ContractBtns() {
       return;
     }
     await contract.methods.assignDoctor(doctorAddress).send({ from: accounts[0] });
+  }
+
+  const revokeDoctor = async e => {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    if (doctorAddress === "") {
+      alert("Please enter a value to write.");
+      return;
+    }
+    await contract.methods.revokeDoctor(doctorAddress).send({ from: accounts[0] });
   }
 
   const activateProfile = async (e) => {
@@ -60,6 +78,10 @@ function ContractBtns() {
       <div>
         <button onClick={readProfile} style={{ marginRight: 10 }}>
           Read My Profile
+        </button>
+
+        <button onClick={readCopyProfile} style={{ marginRight: 10 }}>
+          Read My Profile Copies
         </button>
 
         <button onClick={activateProfile} style={{ marginLeft: 10 }}>
@@ -81,12 +103,21 @@ function ContractBtns() {
         }
       </div>
 
+      <div style={{ flexDirection: "column" }}>
+        <p>Medical History Copy</p>
+        {
+          medicalHistoryCopy ?
+            medicalHistoryCopy
+            : <p>No copy of medical records</p>
+        }
+      </div>
+
       <div className="input-btn">
         <input
           type="text"
           placeholder="New Record"
-          value={newRecord}
-          onChange={handleNewRecordChange}
+          value={updateProfileRecords}
+          onChange={handleUpdateProfileRecord}
         />
         <button onClick={updateProfile}>
           Update Profile
@@ -102,6 +133,17 @@ function ContractBtns() {
         />
         <button onClick={assignDoctor}>
           Assign Doctor
+        </button>
+      </div>
+      <div className="input-btn">
+        <input
+          type="text"
+          placeholder="Doctor's Address"
+          value={doctorAddress}
+          onChange={handleDoctorAddressChange}
+        />
+        <button onClick={revokeDoctor}>
+          Revoke Doctor
         </button>
       </div>
 
