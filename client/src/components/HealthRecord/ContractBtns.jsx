@@ -7,7 +7,6 @@ function ContractBtns() {
   const [medicalHistoryCopy, setMedicalHistoryCopy] = useState("");
   const [updateProfileRecords, setUpdateProfileRecords] = useState("");
   const [doctorAddress, setDoctorAddress] = useState("");
-  const [patientAddress, setPatientAddress] = useState("");
 
   const handleUpdateProfileRecord = e => {
     setUpdateProfileRecords(e.target.value);
@@ -29,7 +28,7 @@ function ContractBtns() {
     console.log(retrievedMedicalHistoryCopy);
   };
 
-  const updateProfile = async e => {
+  const updateProfile = async (e) => {
     if (e.target.tagName === "INPUT") {
       return;
     }
@@ -42,7 +41,7 @@ function ContractBtns() {
     await contract.methods.updateOriginalRecord(accounts[0], updateProfileRecords).send({ from: accounts[0] });
   };
 
-  const assignDoctor = async e => {
+  const assignDoctor = async (e) => {
     if (e.target.tagName === "INPUT") {
       return;
     }
@@ -53,7 +52,7 @@ function ContractBtns() {
     await contract.methods.assignDoctor(doctorAddress).send({ from: accounts[0] });
   }
 
-  const revokeDoctor = async e => {
+  const revokeDoctor = async (e) => {
     if (e.target.tagName === "INPUT") {
       return;
     }
@@ -77,7 +76,7 @@ function ContractBtns() {
   return (
     <div className="btns">
       <div>
-        <button onClick={readProfile(false)} style={{ marginRight: 10 }}>
+        <button onClick={readProfile} style={{ marginRight: 10 }}>
           Read My Profile
         </button>
 
