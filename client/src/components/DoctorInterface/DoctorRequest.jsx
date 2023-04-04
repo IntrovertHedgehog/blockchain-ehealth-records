@@ -7,6 +7,7 @@ function DoctorRequest() {
     const [patientAddress, setPatientAddress] = useState("");
     const [patientMedicalHistory, setPatientMedicalHistory] = useState([]);
     const [updateProfileCopyRecords, setUpdateProfileCopyRecords] = useState("");
+    const [medicalHistoryCopy, setMedicalHistoryCopy] = useState("");
 
     const handlePatientAddressChange = e => {
         setPatientAddress(e.target.value);
@@ -16,13 +17,19 @@ function DoctorRequest() {
         setUpdateProfileCopyRecords(e.target.value);
     };
 
+    const readCopyProfile = async () => {
+        const retrievedMedicalHistoryCopy = await contract.methods.readCopyProfiles(patientAddress).call({ from: accounts[0] });
+        setMedicalHistoryCopy(retrievedMedicalHistoryCopy);
+        console.log(retrievedMedicalHistoryCopy);
+    };
+
     const retrieveRecords = async () => {
         const retrievedPatientMedicalHistory = await contract.methods.readProfile(patientAddress, true).call({ from: accounts[0] });
         console.log(retrievedPatientMedicalHistory);
         setPatientMedicalHistory(retrievedPatientMedicalHistory);
     };
 
-    const updateProfile = async () => {
+    const updateProfileCopy = async () => {
         await contract.methods.updateCopyRecord(patientAddress, accounts[0], updateProfileCopyRecords).send({ from: accounts[0] });
     }
 
@@ -35,6 +42,15 @@ function DoctorRequest() {
                     patientMedicalHistory ?
                         patientMedicalHistory
                         : <p>No medical records retrieved</p>
+                }
+            </div>
+
+            <div style={{ flexDirection: "column" }}>
+                <p>Medical History Copy</p>
+                {
+                    medicalHistoryCopy ?
+                        medicalHistoryCopy
+                        : <p>No copy of medical records</p>
                 }
             </div>
 
@@ -58,16 +74,30 @@ function DoctorRequest() {
                     value={patientAddress}
                     onChange={handlePatientAddressChange}
                 />
+
+                <button onClick={readCopyProfile}>
+                    Retrieve Copy of Records
+                </button>
+            </div>
+
+            <div className="input-btn">
+                <input
+                    type="text"
+                    placeholder="Patient Address"
+                    value={patientAddress}
+                    onChange={handlePatientAddressChange}
+                />
                 <input
                     type="text"
                     placeholder="New Record (Copy)"
                     value={updateProfileCopyRecords}
                     onChange={handleUpdateProfileCopyRecord}
                 />
-                <button onClick={updateProfile}>
+                <button onClick={updateProfileCopy}>
                     Update Profile (Copy)
                 </button>
             </div>
+
         </div>
     )
 }
