@@ -1,13 +1,13 @@
 import React from 'react'
-import Title from "./Title";
-import DoctorRequest from './DoctorRequest';
+import Title from './Title'
+import InsurerView from './InsurerView'
 
-function DoctorInterface() {
+function index() {
 
-    const doctorRequest =
+    const insurerView =
         <>
             <div className='contract-container'>
-                <DoctorRequest />
+                <InsurerView />
             </div>
         </>
 
@@ -15,10 +15,10 @@ function DoctorInterface() {
         <div className='demo'>
             <Title />
             {
-                doctorRequest
+                insurerView
             }
         </div>
     )
 }
 
-export default DoctorInterface
+export default index

@@ -6,7 +6,9 @@ function ContractBtns() {
   const [medicalHistory, setMedicalHistory] = useState("");
   const [medicalHistoryCopy, setMedicalHistoryCopy] = useState("");
   const [updateProfileRecords, setUpdateProfileRecords] = useState("");
+  const [doctorList, setDoctorList] = useState([]);
   const [doctorAddress, setDoctorAddress] = useState("");
+  const [insurerAddress, setInsurerAddress] = useState("");
 
   const handleUpdateProfileRecord = e => {
     setUpdateProfileRecords(e.target.value);
@@ -14,6 +16,10 @@ function ContractBtns() {
 
   const handleDoctorAddressChange = e => {
     setDoctorAddress(e.target.value);
+  };
+
+  const handleInsurerAddressChange = e => {
+    setInsurerAddress(e.target.value);
   };
 
   const readProfile = async () => {
@@ -63,15 +69,44 @@ function ContractBtns() {
     await contract.methods.revokeDoctor(doctorAddress).send({ from: accounts[0] });
   }
 
+  const assignInsurer = async (e) => {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    if (insurerAddress === "") {
+      alert("Please enter a value to write.");
+      return;
+    }
+    await contract.methods.assignInsurer(insurerAddress).send({ from: accounts[0] });
+  }
+
+  const revokeInsurer = async (e) => {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    if (insurerAddress === "") {
+      alert("Please enter a value to write.");
+      return;
+    }
+    await contract.methods.revokeInsurer(insurerAddress).send({ from: accounts[0] });
+  }
+
   const activateProfile = async (e) => {
     console.log("activate Profile");
-    await contract.methods.activateProfile().send({ from: accounts[0] });
+    await contract.methods.activatePatientProfile().send({ from: accounts[0] });
   };
 
   const deactivateProfile = async (e) => {
     console.log("deactivate Profile");
-    await contract.methods.deactivateProfile().send({ from: accounts[0] });
+    await contract.methods.deactivatePatientProfile().send({ from: accounts[0] });
   };
+
+  const getDoctors = async (e) => {
+    console.log("get doctors");
+    const doctorList = await contract.methods.getDoctors().call({ from: accounts[0] });
+    setDoctorList(doctorList);
+    // console.log(doctorList)
+  }
 
   return (
     <div className="btns">
@@ -92,6 +127,10 @@ function ContractBtns() {
           Deactivate Profile
         </button>
 
+        <button onClick={getDoctors} style={{ marginLeft: 10 }}>
+          Get My Doctors
+        </button>
+
       </div>
 
       <div style={{ flexDirection: "column" }}>
@@ -109,6 +148,15 @@ function ContractBtns() {
           medicalHistoryCopy ?
             medicalHistoryCopy
             : <p>No copy of medical records</p>
+        }
+      </div>
+
+      <div style={{ flexDirection: "column" }}>
+        <p>List of My Doctors</p>
+        {
+          doctorList ?
+            doctorList
+            : <p>No doctors retrieved</p>
         }
       </div>
 
@@ -144,6 +192,29 @@ function ContractBtns() {
         />
         <button onClick={revokeDoctor}>
           Revoke Doctor
+        </button>
+      </div>
+
+      <div className="input-btn">
+        <input
+          type="text"
+          placeholder="Insurer's Address"
+          value={insurerAddress}
+          onChange={handleInsurerAddressChange}
+        />
+        <button onClick={assignInsurer}>
+          Assign Insurer
+        </button>
+      </div>
+      <div className="input-btn">
+        <input
+          type="text"
+          placeholder="Insurer's Address"
+          value={insurerAddress}
+          onChange={handleInsurerAddressChange}
+        />
+        <button onClick={revokeInsurer}>
+          Revoke Insurer
         </button>
       </div>
 

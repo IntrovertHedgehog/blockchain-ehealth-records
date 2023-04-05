@@ -122,15 +122,14 @@ contract HealthRecord {
         emit PatientProfileActivated(msg.sender);
     }
 
+    // instantiate insurer *
     function activateInsurerProfile() public {
         InsurerProfile storage insurerProfile = insurerProfiles[msg.sender];
         insurerProfile.insurerIsActive = true;
         emit InsurerProfileActivated(msg.sender);
     }
 
-    // instantiate insurer *
-
-    function deactivateProfile() public {
+    function deactivatePatientProfile() public {
         patientProfiles[msg.sender].patientIsActive = false;
         emit PatientProfileDeactivated(msg.sender);
     }
