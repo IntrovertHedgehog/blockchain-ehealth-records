@@ -149,9 +149,7 @@ contract HealthRecord {
             return patientProfiles[patientAddress].medicalHistory;
         } else { // view copy of medical history if doctor or insurer
             return
-                patientProfiles[patientAddress].medicalHistoryCopies[
-                    msg.sender
-                ];
+                patientProfiles[patientAddress].medicalHistoryCopies[msg.sender];
         }
     }
 

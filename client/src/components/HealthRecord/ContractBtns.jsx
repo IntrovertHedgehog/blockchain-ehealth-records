@@ -6,9 +6,11 @@ function ContractBtns() {
   const [medicalHistory, setMedicalHistory] = useState("");
   const [medicalHistoryCopy, setMedicalHistoryCopy] = useState("");
   const [updateProfileRecords, setUpdateProfileRecords] = useState("");
+  const [updateProfileCopyRecords, setUpdateProfileCopyRecords] = useState("");
   const [doctorList, setDoctorList] = useState([]);
   const [doctorAddress, setDoctorAddress] = useState("");
   const [insurerAddress, setInsurerAddress] = useState("");
+  const [readerAddress, setReaderAddress] = useState("");
 
   const handleUpdateProfileRecord = e => {
     setUpdateProfileRecords(e.target.value);
@@ -20,6 +22,14 @@ function ContractBtns() {
 
   const handleInsurerAddressChange = e => {
     setInsurerAddress(e.target.value);
+  };
+
+  const handleReaderAddressChange = e => {
+    setReaderAddress(e.target.value);
+  };
+
+  const handleUpdateProfileCopyRecord = e => {
+    setUpdateProfileCopyRecords(e.target.value);
   };
 
   const readProfile = async () => {
@@ -46,6 +56,17 @@ function ContractBtns() {
     console.log(updateProfileRecords);
     await contract.methods.updateOriginalRecord(accounts[0], updateProfileRecords).send({ from: accounts[0] });
   };
+
+  const updateProfileCopy = async (e) => {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    if (updateProfileRecords === "") {
+      alert("Please enter a value to write.");
+      return;
+    }
+    await contract.methods.updateCopyRecord().send({ from: accounts[0] });
+  }
 
   const assignDoctor = async (e) => {
     if (e.target.tagName === "INPUT") {
@@ -169,6 +190,24 @@ function ContractBtns() {
         />
         <button onClick={updateProfile}>
           Update Profile
+        </button>
+      </div>
+
+      <div className="input-btn">
+        <input
+          type="text"
+          placeholder="New Record (Copy)"
+          value={updateProfileCopyRecords}
+          onChange={handleUpdateProfileCopyRecord}
+        />
+        <input
+          type="text"
+          placeholder="Reader Address"
+          value={readerAddress}
+          onChange={handleReaderAddressChange}
+        />
+        <button onClick={updateProfileCopy}>
+          Update Profile (Copy)
         </button>
       </div>
 

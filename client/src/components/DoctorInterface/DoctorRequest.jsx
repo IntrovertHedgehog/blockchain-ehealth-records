@@ -6,15 +6,11 @@ function DoctorRequest() {
     const { state: { contract, accounts } } = useEth();
     const [patientAddress, setPatientAddress] = useState("");
     const [patientMedicalHistory, setPatientMedicalHistory] = useState([]);
-    const [updateProfileCopyRecords, setUpdateProfileCopyRecords] = useState("");
     const [medicalHistoryCopy, setMedicalHistoryCopy] = useState("");
+    const [isUpdated, setIsUpdated] = useState("Method not called yet");
 
     const handlePatientAddressChange = e => {
         setPatientAddress(e.target.value);
-    };
-
-    const handleUpdateProfileCopyRecord = e => {
-        setUpdateProfileCopyRecords(e.target.value);
     };
 
     const readCopyProfile = async () => {
@@ -29,8 +25,13 @@ function DoctorRequest() {
         setPatientMedicalHistory(retrievedPatientMedicalHistory);
     };
 
-    const updateProfileCopy = async () => {
-        await contract.methods.updateCopyRecord(patientAddress, accounts[0], updateProfileCopyRecords).send({ from: accounts[0] });
+    const copyRecordIsUpdated = async () => {
+        const isUpdated = await contract.methods.copyRecordIsUpdated(patientAddress, accounts[0]).call({ from: accounts[0] });
+        if (isUpdated) {
+            setIsUpdated("Updated");
+        } else {
+            setIsUpdated("Not Updated");
+        }
     }
 
     return (
@@ -51,6 +52,15 @@ function DoctorRequest() {
                     medicalHistoryCopy ?
                         medicalHistoryCopy
                         : <p>No copy of medical records</p>
+                }
+            </div>
+
+            <div style={{ flexDirection: "column" }}>
+                <p>Check if Copy is Updated</p>
+                {
+                    isUpdated ?
+                        isUpdated
+                        : <p>error</p>
                 }
             </div>
 
@@ -87,14 +97,9 @@ function DoctorRequest() {
                     value={patientAddress}
                     onChange={handlePatientAddressChange}
                 />
-                <input
-                    type="text"
-                    placeholder="New Record (Copy)"
-                    value={updateProfileCopyRecords}
-                    onChange={handleUpdateProfileCopyRecord}
-                />
-                <button onClick={updateProfileCopy}>
-                    Update Profile (Copy)
+
+                <button onClick={copyRecordIsUpdated}>
+                    Check if Copy is Updated
                 </button>
             </div>
 
