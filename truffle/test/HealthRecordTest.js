@@ -1,4 +1,4 @@
-const _deploy_contracts = require("../migrations/2_deploy_health_record");
+const _deploy_contracts = require("../migrations/2_deploy_contracts");
 const truffleAssert = require("truffle-assertions");
 var assert = require("assert");
 
@@ -7,7 +7,7 @@ var HealthRecord = artifacts.require("../contracts/HealthRecord.sol");
 contract("HealthRecord", function (accounts) {
     before(async () => {
         healthRecordInstance = await HealthRecord.deployed();
-        await healthRecordInstance.activateProfile({ from: accounts[0] });
+        await healthRecordInstance.activatePatientProfile({ from: accounts[0] });
     });
 
     it("Read medical history of a new account", async () => {

@@ -46,6 +46,8 @@ contract HealthRecord {
     event CIClaimValidated(address patient, address insurer);
     event CIClaimReimbursed(address patient, address insurer, uint amt);
 
+    event Debug(uint somenumber);
+
     modifier patientIsActive(address patientAddress) {
         require(
             patientProfiles[patientAddress].patientIsActive,
@@ -224,6 +226,7 @@ contract HealthRecord {
         );
         profile.doctors.push(doctorAddress);
         profile.doctorNumbers[doctorAddress] = profile.doctors.length - 1;
+        emit Debug(profile.doctorNumbers[doctorAddress]);
         emit PatientProfileDoctorAssigned(msg.sender, doctorAddress);
     }
 
@@ -266,6 +269,10 @@ contract HealthRecord {
         return patientProfiles[msg.sender].doctors;
     }
 
+    function getInsurers() public view patientIsActive(msg.sender) returns (address[] memory) {
+        return patientProfiles[msg.sender].insurers;
+    }
+
     // function purchaseCICoverage(address payable insurer) public payable patientIsActive(msg.sender) {
     //     //check if the insurer is assigned to patient
     //     require();
@@ -305,7 +312,7 @@ contract HealthRecord {
 
     // Used by patient to submit a CI claim to insurer, along with the medical record
     function submitCriticalIllness(address insurerAddress, uint recordIndex) public isInsuredCI(msg.sender, insurerAddress) patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
-        PatientProfile storage profile = patientProfiles[msg.sender];
+        // PatientProfile storage profile = patientProfiles[msg.sender];
         InsurerProfile storage insurer = insurerProfiles[insurerAddress];
         string[] memory medicalRecords = readProfile(msg.sender, true);
         string memory relevantRecord = medicalRecords[recordIndex];
