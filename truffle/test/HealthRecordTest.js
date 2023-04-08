@@ -1,6 +1,8 @@
 const _deploy_contracts = require("../migrations/2_deploy_contracts");
 const truffleAssert = require("truffle-assertions");
 var assert = require("assert");
+const BigNumber = require('bignumber.js'); // npm install bignumber.js
+const oneEth = new BigNumber(1000000000000000000); // 1 eth
 
 var HealthRecord = artifacts.require("../contracts/HealthRecord.sol");
 
@@ -8,6 +10,8 @@ contract("HealthRecord", function (accounts) {
     before(async () => {
         healthRecordInstance = await HealthRecord.deployed();
         await healthRecordInstance.activatePatientProfile({ from: accounts[0] });
+        await healthRecordInstance.activateInsurerProfile({ from: accounts[2] });
+        await healthRecordInstance.activateInsurerProfile({ from: accounts[3] });
     });
 
     it("Read medical history of a new account", async () => {
@@ -88,5 +92,45 @@ contract("HealthRecord", function (accounts) {
         const record2 = "MockRecord2";
         const medicalHistory = await healthRecordInstance.readProfile(accounts[0], true, {from : accounts[2]});
         assert.deepEqual(medicalHistory, [record1, record2], "Medical history copy does not match");
+    })
+
+    it("Patient purchases critical illness coverage from assigned insurer", async () => {
+        const amountPaid = oneEth.dividedBy(100);
+        const purchaseCICoverage = await healthRecordInstance.purchaseCICoverage(accounts[2], {from: accounts[0], value: amountPaid});
+        truffleAssert.eventEmitted(purchaseCICoverage, "CICoveragePurchased");
+        const patientIsInsuredCI = await healthRecordInstance.getPatientIsInsuredCI();
+        assert.equal(patientIsInsuredCI, true, "Patient does not have critical illness coverage");
+        const insurerCoversPatientCI = await healthRecordInstance.getInsurerCoversPatientCI(accounts[0], {from: accounts[2]});
+        assert.equal(insurerCoversPatientCI, 1, "Insurer does not have patient under critical illness coverage");
+    })
+
+    //this test case is a little sus, time taken for test to run does not appear for this test case only
+    it("Patient purchases critical illness coverage from unassigned insurer", async() => {
+        const amountPaid = oneEth.dividedBy(100);
+        const purchaseCICoverage = healthRecordInstance.purchaseCICoverage(accounts[3], {from: accounts[0], value: amountPaid});
+        truffleAssert.reverts(purchaseCICoverage);
+    })
+
+    it("Patient submits critical illness claim", async() => {
+        const submission = await healthRecordInstance.submitCriticalIllness(accounts[2], 0, {from: accounts[0]});
+        truffleAssert.eventEmitted(submission, "CIClaimSubmitted");
+        const submittedRecord = await healthRecordInstance.getRecordCI(accounts[0], {from: accounts[2]});
+        assert.strictEqual(submittedRecord, "MockRecord1", "The submitted records for critical illness do not match");
+    })
+
+    it("Insurer validates patient's critical illness claim", async() => {
+        const validation = await healthRecordInstance.validateCIClaim(accounts[0], {from: accounts[2]});
+        truffleAssert.eventEmitted(validation, "CIClaimValidated");
+        const isValidCI = await healthRecordInstance.getValidityCI(accounts[0], {from: accounts[2]});
+        assert.strictEqual(isValidCI, true, "The validation for the submitted record did not work properly");
+    })
+
+    it("Insurer reimburses patient's criticall illness claim", async() => {
+        const reimbursement = await healthRecordInstance.reimburseCIClaim(accounts[0], {from: accounts[2]});
+        truffleAssert.eventEmitted(reimbursement, "CIClaimReimbursed");
+        const submittedRecord = await healthRecordInstance.getRecordCI(accounts[0], {from: accounts[2]});
+        assert.strictEqual(submittedRecord, "", "The submitted record was not deleted");
+        const isValidCI = await healthRecordInstance.getValidityCI(accounts[0], {from: accounts[2]});
+        assert.strictEqual(isValidCI, false, "The submitted record was not deleted");
     })
 })

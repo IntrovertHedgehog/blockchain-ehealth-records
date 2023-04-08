@@ -25,8 +25,8 @@ contract HealthRecord {
         // mapping(address => bool) validityDisability; 
     }
 
-    mapping(address => PatientProfile) patientProfiles;
-    mapping(address => InsurerProfile) insurerProfiles; //new
+    mapping(address => PatientProfile) patientProfiles; //mapping of address to patient profile struct
+    mapping(address => InsurerProfile) insurerProfiles; // similar to patientProfiles
 
     event PatientProfileActivated(address patient);
     event PatientProfileDeactivated(address patient);
@@ -51,7 +51,7 @@ contract HealthRecord {
     modifier patientIsActive(address patientAddress) {
         require(
             patientProfiles[patientAddress].patientIsActive,
-            "This profile is not active."
+            "This patient profile is not active."
         );
         _;
     }
@@ -93,7 +93,7 @@ contract HealthRecord {
     modifier insurerIsActive(address insurerAddress) {
         require(
             insurerProfiles[insurerAddress].insurerIsActive,
-            "This profile is not active."
+            "This insurer profile is not active."
         );
         _;
     }
@@ -273,42 +273,18 @@ contract HealthRecord {
         return patientProfiles[msg.sender].insurers;
     }
 
-    // function purchaseCICoverage(address payable insurer) public payable patientIsActive(msg.sender) {
-    //     //check if the insurer is assigned to patient
-    //     require();
-    //     insurer.transfer(msg.value);
-    //     PatientProfile storage profile = patientProfiles[msg.sender];
-    //     profile.isInsuredCI = true;
-    // }
-
     // patient purchase critical illness coverage from insurance agent
     function purchaseCICoverage(address payable insurerAddress) public payable patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
         PatientProfile storage profile = patientProfiles[msg.sender];
-        // require(
-        //     profile.insurerNumbers[insurerAddress] == 0,
-        //     "This insurer has already been assigned"
-        // ); // i thought we are checking if insurer is assigned to the patient because patients can only purchase coverage from insurers assigned to them
         require(
             profile.insurerNumbers[insurerAddress] == 1, 
             "Cannot purchase coverage from an insurer not assigned to this patient");
         InsurerProfile storage insurer = insurerProfiles[insurerAddress];
         insurer.criticalIllness[msg.sender] = 1;
         insurerAddress.transfer(msg.value);
-        // assignInsurer(insurerAddress); // remove if we are doing the already assigned method
         profile.isInsuredCI = true;
         emit CICoveragePurchased(msg.sender, insurerAddress, msg.value);
     }
-
-    // function submitCriticalIllness(address insurer, uint recordIndex) {
-    //     string[] medicalrecords = readProfile(msg.sender, true);
-    //     string record = medicalrecords[recordIndex];
-    //     //update mapping for claim under insurer
-    //     Insurer storage agent= InsurerProfiles[insurer];
-    //     agent.criticalIllness[msg.sender] = record
-
-    //     //update medicalhistorycopy with record 
-
-    // }
 
     // Used by patient to submit a CI claim to insurer, along with the medical record
     function submitCriticalIllness(address insurerAddress, uint recordIndex) public isInsuredCI(msg.sender, insurerAddress) patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
@@ -317,13 +293,9 @@ contract HealthRecord {
         string[] memory medicalRecords = readProfile(msg.sender, true);
         string memory relevantRecord = medicalRecords[recordIndex];
         insurer.recordCI[msg.sender] = relevantRecord;
-        updateCopyRecord(msg.sender, insurerAddress, relevantRecord); // this line gives error because updateCopyRecord only accepts calldata not memory
+        updateCopyRecord(msg.sender, insurerAddress, relevantRecord);
         emit CIClaimSubmitted(msg.sender, insurerAddress, recordIndex);
     }
-    
-    // function validateCIClaim(address patient) {
-    //     //check that insurer is in charge of patient
-    // }
 
     // run by insurers to validate CI claims
     function validateCIClaim(address patientAddress) public isInsuredCI(patientAddress, msg.sender) patientIsActive(patientAddress) insurerIsActive(msg.sender) {
@@ -340,11 +312,37 @@ contract HealthRecord {
         patientAddress.transfer(msg.value);
 
         //reset related mappings
-        delete insurer.criticalIllness[patientAddress];
+        delete insurer.criticalIllness[patientAddress]; //should not delete? if delete then patient's isInsuredCI should be set to false also
         delete insurer.recordCI[patientAddress];
         delete insurer.validityCI[patientAddress];
         emit CIClaimReimbursed(patientAddress, msg.sender, msg.value);
 
         return msg.value;
+    }
+
+    function getPatientIsInsuredCI() public view patientIsActive(msg.sender) returns (bool) {
+        return patientProfiles[msg.sender].isInsuredCI;
+    }
+
+    function getInsurerCoversPatientCI(address patientAddress) public view insurerIsActive(msg.sender) returns (uint256) {
+        return insurerProfiles[msg.sender].criticalIllness[patientAddress];
+    }
+
+    function getRecordCI(address patientAddress) public view insurerIsActive(msg.sender) returns (string memory) {
+        PatientProfile storage profile = patientProfiles[patientAddress];
+        require(
+            profile.insurerNumbers[msg.sender] == 1, 
+            "This patient is not assigned to the insurance agent");
+        InsurerProfile storage insurer = insurerProfiles[msg.sender];
+        return insurer.recordCI[patientAddress];
+    }
+
+    function getValidityCI(address patientAddress) public view insurerIsActive(msg.sender) returns (bool) {
+        PatientProfile storage profile = patientProfiles[patientAddress];
+        require(
+            profile.insurerNumbers[msg.sender] == 1, 
+            "This patient is not assigned to the insurance agent");
+        InsurerProfile storage insurer = insurerProfiles[msg.sender];
+        return insurer.validityCI[patientAddress];
     }
 }
