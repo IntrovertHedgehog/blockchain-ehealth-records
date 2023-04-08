@@ -312,7 +312,7 @@ contract HealthRecord {
         patientAddress.transfer(msg.value);
 
         //reset related mappings
-        delete insurer.criticalIllness[patientAddress]; //should not delete? if delete then patient's isInsuredCI should be set to false also
+        // delete insurer.criticalIllness[patientAddress]; //should not delete? if delete then patient's isInsuredCI should be set to false also
         delete insurer.recordCI[patientAddress];
         delete insurer.validityCI[patientAddress];
         emit CIClaimReimbursed(patientAddress, msg.sender, msg.value);

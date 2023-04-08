@@ -126,7 +126,8 @@ contract("HealthRecord", function (accounts) {
     })
 
     it("Insurer reimburses patient's criticall illness claim", async() => {
-        const reimbursement = await healthRecordInstance.reimburseCIClaim(accounts[0], {from: accounts[2]});
+        const amountPaid = oneEth.dividedBy(50);
+        const reimbursement = await healthRecordInstance.reimburseCIClaim(accounts[0], {from: accounts[2], value: amountPaid});
         truffleAssert.eventEmitted(reimbursement, "CIClaimReimbursed");
         const submittedRecord = await healthRecordInstance.getRecordCI(accounts[0], {from: accounts[2]});
         assert.strictEqual(submittedRecord, "", "The submitted record was not deleted");
