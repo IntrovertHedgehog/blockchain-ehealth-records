@@ -30,5 +30,8 @@
     "extends": [
       "react-app"
     ]
+  },
+  "browser": {
+    "crypto": false
   }
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import useEth from "../../contexts/EthContext/useEth";
 import { getRecord, postRecord } from "../../services/records";
+import { newKeyPair } from "../../services/cryptography";
 
 const blankAddress = `0x${"0".repeat(40)}`;
 
@@ -17,6 +18,11 @@ function ContractBtns() {
   const [doctorAddress, setDoctorAddress] = useState("");
   const [insurerAddress, setInsurerAddress] = useState("");
   const [readerAddress, setReaderAddress] = useState("");
+  const [passphrase, setPassphrase] = useState("");
+  let keyPair = {
+    publicKey: '',
+    privateKey: '',
+  }
 
   const handleUpdateProfileRecord = (e) => {
     setUpdateProfileRecords(e.target.value);
@@ -37,6 +43,15 @@ function ContractBtns() {
   const handleUpdateProfileCopyRecord = (e) => {
     setUpdateProfileCopyRecords(e.target.value);
   };
+
+  const setNewKeyPair = async () => {
+    keyPair = newKeyPair(passphrase);
+    console.log(keyPair);
+  };
+
+  const retrieveKeyPair = async() => {
+
+  }
 
   const readProfile = async () => {
     const retrievedMedicalHistory = await contract.methods
@@ -186,6 +201,19 @@ function ContractBtns() {
   return (
     <div className="btns">
       <div>
+        <input
+          value={passphrase}
+          onChange={(e) => setPassphrase(e.target.value)}
+          type="password"
+        />
+        <button onClick={setNewKeyPair} style={{ marginRight: 10 }}>
+          set new key pair
+        </button>
+        <button onClick={retrieveKeyPair} style={{ marginRight: 10 }}>
+          retrieve key pair
+        </button>
+      </div>
+      <div>
         <button onClick={readProfile} style={{ marginRight: 10 }}>
           Read My Profile
         </button>
@@ -236,12 +264,6 @@ function ContractBtns() {
       </div>
 
       <div className="input-btn">
-        {/* <input
-          type="text"
-          placeholder="New Record"
-          value={updateProfileRecords}
-          onChange={handleUpdateProfileRecord}
-        /> */}
         <textarea
           rows={15}
           cols={70}

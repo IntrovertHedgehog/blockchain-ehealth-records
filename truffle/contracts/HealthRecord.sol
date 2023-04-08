@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+import "./KeyStore.sol";
 
 contract HealthRecord {
     struct PatientProfile {
@@ -28,6 +29,8 @@ contract HealthRecord {
     mapping(address => PatientProfile) patientProfiles;
     mapping(address => InsurerProfile) insurerProfiles; //new
 
+    KeyStore public keyStore;
+
     event PatientProfileActivated(address patient);
     event PatientProfileDeactivated(address patient);
     // event PatientProfileCreated(address patient);
@@ -47,6 +50,11 @@ contract HealthRecord {
     event CIClaimReimbursed(address patient, address insurer, uint amt);
 
     event Debug(uint somenumber);
+
+    constructor(KeyStore ks) {
+        keyStore = ks;
+    }
+
 
     modifier patientIsActive(address patientAddress) {
         require(

@@ -41,7 +41,7 @@ function EthProvider({ children }) {
 
     tryInit();
   }, [init]);
-
+  
   useEffect(() => {
     const events = ["chainChanged", "accountsChanged"];
     const handleChange = () => {

@@ -1,4 +1,4 @@
-const _contract_deploy = require("../migrations/3_deploy_keystore");
+const _contract_deploy = require("../migrations/2_deploy_contracts");
 const truffleAssert = require("truffle-assertions");
 const { generateKeyPairSync } = require("crypto");
 
