@@ -104,11 +104,9 @@ contract("HealthRecord", function (accounts) {
         assert.equal(insurerCoversPatientCI, 1, "Insurer does not have patient under critical illness coverage");
     })
 
-    //this test case is a little sus, time taken for test to run does not appear for this test case only
     it("Patient purchases critical illness coverage from unassigned insurer", async() => {
         const amountPaid = oneEth.dividedBy(100);
-        const purchaseCICoverage = healthRecordInstance.purchaseCICoverage(accounts[3], {from: accounts[0], value: amountPaid});
-        truffleAssert.reverts(purchaseCICoverage);
+        truffleAssert.reverts(healthRecordInstance.purchaseCICoverage(accounts[3], {from: accounts[0], value: amountPaid}), "Cannot purchase coverage from an insurer not assigned to this patient");
     })
 
     it("Patient submits critical illness claim", async() => {

@@ -279,6 +279,7 @@ contract HealthRecord {
         require(
             profile.insurerNumbers[insurerAddress] == 1, 
             "Cannot purchase coverage from an insurer not assigned to this patient");
+        require(msg.value > 0, "Cannot purchase coverage without providing ether");
         InsurerProfile storage insurer = insurerProfiles[insurerAddress];
         insurer.criticalIllness[msg.sender] = 1;
         insurerAddress.transfer(msg.value);
@@ -309,6 +310,7 @@ contract HealthRecord {
         InsurerProfile storage insurer = insurerProfiles[msg.sender];
         // PatientProfile storage profile = patientProfiles[patientAddress];
         require(insurer.validityCI[patientAddress] == true, "Please validate the CI claim first.");
+        require(msg.value > 0, "Cannot reimburse critical illness claim without providing ether");
         patientAddress.transfer(msg.value);
 
         //reset related mappings
