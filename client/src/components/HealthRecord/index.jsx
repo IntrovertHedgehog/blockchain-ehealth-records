@@ -18,8 +18,8 @@ function HealthRecord() {
 		<div className="demo">
 			<Title />
 			{
-				!state.artifact ? <NoticeNoArtifact /> :
-					!state.contract ? <NoticeWrongNetwork /> :
+				!state.artifacts ? <NoticeNoArtifact /> :
+					!state.contracts ? <NoticeWrongNetwork /> :
 						healthRecordContract
 			}
 		</div>

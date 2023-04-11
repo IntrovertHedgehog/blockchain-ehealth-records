@@ -16,20 +16,17 @@ const db = admin.firestore();
 
 const app = express();
 
-app.use(cors({origin: true}));
+app.use(cors({ origin: true }));
 
 app.get("/demo", (req, res) => {
   return res.status(200).send("Hello there");
 });
 
-
 app.get("/api/main-records/:identifier", (req, res) => {
   (async () => {
     try {
       const identifier = req.params.identifier;
-      const record = await db.collection("main-records")
-          .doc(identifier)
-          .get();
+      const record = await db.collection("main-records").doc(identifier).get();
       if (record.exists) {
         return res.status(200).send(record.data());
       } else {
@@ -39,28 +36,22 @@ app.get("/api/main-records/:identifier", (req, res) => {
       console.error(error);
       return res.status(500).send(error);
     }
-  }
-  )();
+  })();
 });
 
 app.post("/api/main-records", (req, res) => {
   (async () => {
     try {
-      const data = req.body.data;
-      const indentifier = crypto
-          .createHash("md5")
-          .update(JSON.stringify(data))
-          .digest("base64url");
-      console.log(indentifier);
-      console.log(data);
-      await db.collection("main-records")
-          .doc(indentifier)
-          .create({
-            verifier: req.body.verifier,
-            data: data,
-          });
+      const reqData = req.body;
+      const identifier = crypto
+        .createHash("md5")
+        .update(JSON.stringify(reqData.data))
+        .digest("base64url");
+      reqData.identifier = identifier;
+      console.log(reqData);
+      await db.collection("main-records").doc(identifier).create(reqData);
       return res.status(201).send({
-        identifier: indentifier,
+        identifier: identifier,
       });
     } catch (error) {
       console.log(error);
