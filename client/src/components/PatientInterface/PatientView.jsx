@@ -190,15 +190,23 @@ export default function PatientView() {
       })
     );
 
-    recordHistoryDec.forEach(async (record) => {
-      record.data = await encryptData(record.data, readerPublicKey);
-      const id = await postRecord(record);
-      if (id) {
-        await healthRecord.methods
-          .updateCopyRecord(accounts[0], readerAddress, id)
-          .send({ from: accounts[0] });
-      }
-    });
+    const ids = (
+      await Promise.all(
+        recordHistoryDec.map(async (record) => {
+          record.data = await encryptData(record.data, readerPublicKey);
+          const id = await postRecord(record);
+          return id;
+        })
+      )
+    ).filter((id) => id);
+
+    console.log(ids);
+
+    ids.forEach((id) =>
+      healthRecord.methods
+        .updateCopyRecord(accounts[0], readerAddress, id)
+        .send({ from: accounts[0] })
+    );
   };
 
   const assignDoctor = async (e) => {
