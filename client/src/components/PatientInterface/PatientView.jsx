@@ -118,6 +118,8 @@ export default function PatientView() {
     const record = JSON.parse(updateProfileRecords);
     record.data.patientAddress = accounts[0];
     record.data.timeCreated = Date.now();
+    record.data.createdBy = accounts[0];
+    record.data.createdByDoctor = false;
     console.log(record);
     record.data = await encryptData(record.data, myKeys.publicKey);
     console.log(record);
@@ -341,12 +343,6 @@ export default function PatientView() {
       </div>
 
       <div className="input-btn">
-        {/* <input
-          type="text"
-          placeholder="New Record (Copy)"
-          value={updateProfileCopyRecords}
-          onChange={handleUpdateProfileCopyRecord}
-        /> */}
         <input
           type="text"
           placeholder="Reader's Address"

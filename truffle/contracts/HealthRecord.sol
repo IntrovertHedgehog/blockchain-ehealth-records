@@ -200,17 +200,7 @@ contract HealthRecord {
     function copyRecordIsUpdated(
         address patientAddress,
         address accessorAddress
-    ) public view patientIsActive(patientAddress) returns (bool) {
-        require(
-            patientProfiles[patientAddress].doctorNumbers[accessorAddress] !=
-                0 ||
-                patientProfiles[patientAddress].insurerNumbers[
-                    accessorAddress
-                ] !=
-                0,
-            "This person does not have any access right to this record"
-        );
-
+    ) public view patientIsActive(patientAddress) returns (uint) {
         uint originalLength = patientProfiles[patientAddress]
             .medicalHistory
             .length;
@@ -223,7 +213,7 @@ contract HealthRecord {
             "Something went wrong! Copy record is longer than original record."
         );
 
-        return (originalLength == copyLength);
+        return (originalLength - copyLength);
     }
 
     function assignDoctor(address doctorAddress) public patientIsActive(msg.sender) {

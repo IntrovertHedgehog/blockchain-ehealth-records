@@ -18,7 +18,7 @@ export default function Passphrase() {
     await keyStore.methods
       .setKeyPair(keyPair.publish)
       .send({ from: accounts[0] });
-    updateGlobalState("myKeys", keyPair);
+    updateGlobalState("myKeys", keyPair.bare);
     console.log(keyPair.bare);
     setPassphrase("");
     setShowPass(false);
