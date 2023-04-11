@@ -11,7 +11,7 @@ import {
 
 const blankAddress = `0x${"0".repeat(40)}`;
 
-function ContractBtns() {
+export default function PatientView() {
   const {
     state: { contracts, accounts },
   } = useEth();
@@ -440,5 +440,3 @@ function ContractBtns() {
     </div>
   );
 }
-
-export default ContractBtns;

@@ -1,24 +1,27 @@
-import React from 'react'
+import React from "react";
 import Title from "./Title";
-import DoctorRequest from './DoctorRequest';
+import DoctorView from "./DoctorView";
+import NoticeNoArtifact from "../Common/NoticeNoArtifact";
+import NoticeWrongNetwork from "../Common/NoticeWrongNetwork";
+import { useEth } from "../../contexts/EthContext";
 
 function DoctorInterface() {
+  const { state } = useEth();
 
-    const doctorRequest =
-        <>
-            <div className='contract-container'>
-                <DoctorRequest />
-            </div>
-        </>
-
-    return (
-        <div className='demo'>
-            <Title />
-            {
-                doctorRequest
-            }
+  return (
+    <div className="demo">
+      <Title />
+      {!state.artifacts ? (
+        <NoticeNoArtifact />
+      ) : !state.contracts ? (
+        <NoticeWrongNetwork />
+      ) : (
+        <div className="contract-container">
+          <DoctorView />
         </div>
-    )
+      )}
+    </div>
+  );
 }
 
-export default DoctorInterface
+export default DoctorInterface;

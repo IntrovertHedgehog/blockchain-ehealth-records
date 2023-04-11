@@ -2,7 +2,7 @@ import React from 'react'
 import { useState } from "react";
 import useEth from "../../contexts/EthContext/useEth";
 
-function InsurerView() {
+export default function InsurerView() {
 
     const { state: { contract, accounts } } = useEth();
     const [patientAddress, setPatientAddress] = useState("");
@@ -136,5 +136,3 @@ function InsurerView() {
         </div>
     )
 }
-
-export default InsurerView

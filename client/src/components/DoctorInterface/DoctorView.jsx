@@ -2,7 +2,7 @@ import React from 'react'
 import { useState } from "react";
 import useEth from "../../contexts/EthContext/useEth";
 
-function DoctorRequest() {
+export default function DoctorView() {
     const { state: { contract, accounts } } = useEth();
     const [patientAddress, setPatientAddress] = useState("");
     const [patientMedicalHistory, setPatientMedicalHistory] = useState([]);
@@ -106,5 +106,3 @@ function DoctorRequest() {
         </div>
     )
 }
-
-export default DoctorRequest
