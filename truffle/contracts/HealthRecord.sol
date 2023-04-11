@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+import "./KeyStore.sol";
 
 contract HealthRecord {
     struct PatientProfile {
@@ -28,6 +29,8 @@ contract HealthRecord {
     mapping(address => PatientProfile) patientProfiles; //mapping of address to patient profile struct
     mapping(address => InsurerProfile) insurerProfiles; // similar to patientProfiles
 
+    KeyStore public keyStore;
+
     event PatientProfileActivated(address patient);
     event PatientProfileDeactivated(address patient);
     // event PatientProfileCreated(address patient);
@@ -47,6 +50,11 @@ contract HealthRecord {
     event CIClaimReimbursed(address patient, address insurer, uint amt);
 
     event Debug(uint somenumber);
+
+    constructor(KeyStore ks) {
+        keyStore = ks;
+    }
+
 
     modifier patientIsActive(address patientAddress) {
         require(
@@ -192,17 +200,7 @@ contract HealthRecord {
     function copyRecordIsUpdated(
         address patientAddress,
         address accessorAddress
-    ) public view patientIsActive(patientAddress) returns (bool) {
-        require(
-            patientProfiles[patientAddress].doctorNumbers[accessorAddress] !=
-                0 ||
-                patientProfiles[patientAddress].insurerNumbers[
-                    accessorAddress
-                ] !=
-                0,
-            "This person does not have any access right to this record"
-        );
-
+    ) public view patientIsActive(patientAddress) returns (uint) {
         uint originalLength = patientProfiles[patientAddress]
             .medicalHistory
             .length;
@@ -215,7 +213,7 @@ contract HealthRecord {
             "Something went wrong! Copy record is longer than original record."
         );
 
-        return (originalLength == copyLength);
+        return (originalLength - copyLength);
     }
 
     function assignDoctor(address doctorAddress) public patientIsActive(msg.sender) {

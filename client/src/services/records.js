@@ -10,7 +10,7 @@ export async function getRecord(id) {
     console.log(res);
     return res.data;
   } catch(error) {
-    // console.error(error);
+    console.error(error);
     return '';
   }
 }

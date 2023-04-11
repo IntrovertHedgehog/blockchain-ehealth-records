@@ -7,22 +7,22 @@ function EthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const init = useCallback(
-    async artifact => {
-      if (artifact) {
+    async artifacts => {
+      if (artifacts) {
         const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
         const accounts = await web3.eth.requestAccounts();
         const networkID = await web3.eth.net.getId();
-        const { abi } = artifact;
-        let address, contract;
+        const { abi } = artifacts;
+        let address, contracts;
         try {
-          address = artifact.networks[networkID].address;
-          contract = new web3.eth.Contract(abi, address);
+          address = artifacts.networks[networkID].address;
+          contracts = new web3.eth.Contract(abi, address);
         } catch (err) {
           console.error(err);
         }
         dispatch({
           type: actions.init,
-          data: { artifact, web3, accounts, networkID, contract }
+          data: { artifacts, web3, accounts, networkID, contracts }
         });
       }
     }, []);
@@ -33,7 +33,9 @@ function EthProvider({ children }) {
         // const simpleStorage = require("../../contracts/SimpleStorage.json");
         // init(simpleStorage);
         const healthRecord = require("../../contracts/HealthRecord.json");
+        const keyStore = require("../../contracts/KeyStore.json");
         init(healthRecord);
+        init(keyStore);
       } catch (err) {
         console.error(err);
       }
@@ -41,18 +43,23 @@ function EthProvider({ children }) {
 
     tryInit();
   }, [init]);
-
+  
   useEffect(() => {
     const events = ["chainChanged", "accountsChanged"];
     const handleChange = () => {
-      init(state.artifact);
+      let artifacts = state.artifacts;
+      dispatch({
+        type: actions.init,
+        data: {artifacts: [], contracts: []}
+      });
+      artifacts.forEach(a => init(a));
     };
 
     events.forEach(e => window.ethereum.on(e, handleChange));
     return () => {
       events.forEach(e => window.ethereum.removeListener(e, handleChange));
     };
-  }, [init, state.artifact]);
+  }, [init, state.artifacts]);
 
   return (
     <EthContext.Provider value={{

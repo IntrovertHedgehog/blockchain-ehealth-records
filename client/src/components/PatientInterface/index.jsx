@@ -1,11 +1,10 @@
-import React from "react";
+import { useEth } from "../../contexts/EthContext";
 import Title from "./Title";
-import DoctorView from "./DoctorView";
+import PatientView from "./PatientView";
 import NoticeNoArtifact from "../common/NoticeNoArtifact";
 import NoticeWrongNetwork from "../common/NoticeWrongNetwork";
-import { useEth } from "../../contexts/EthContext";
 
-function DoctorInterface() {
+function PatientInterface() {
   const { state } = useEth();
 
   return (
@@ -17,11 +16,11 @@ function DoctorInterface() {
         <NoticeWrongNetwork />
       ) : (
         <div className="contract-container">
-          <DoctorView />
+          <PatientView />
         </div>
       )}
     </div>
   );
 }
 
-export default DoctorInterface;
+export default PatientInterface;

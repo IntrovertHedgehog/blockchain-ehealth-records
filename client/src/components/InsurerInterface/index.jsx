@@ -1,24 +1,27 @@
-import React from 'react'
-import Title from './Title'
-import InsurerView from './InsurerView'
+import React from "react";
+import Title from "./Title";
+import InsurerView from "./InsurerView";
+import NoticeNoArtifact from "../common/NoticeNoArtifact";
+import NoticeWrongNetwork from "../common/NoticeWrongNetwork";
+import { useEth } from "../../contexts/EthContext";
 
-function index() {
+function InsurerInterface() {
+  const { state } = useEth();
 
-    const insurerView =
-        <>
-            <div className='contract-container'>
-                <InsurerView />
-            </div>
-        </>
-
-    return (
-        <div className='demo'>
-            <Title />
-            {
-                insurerView
-            }
+  return (
+    <div className="demo">
+      <Title />
+      {!state.artifacts ? (
+        <NoticeNoArtifact />
+      ) : !state.contracts ? (
+        <NoticeWrongNetwork />
+      ) : (
+        <div className="contract-container">
+          <InsurerView />
         </div>
-    )
+      )}
+    </div>
+  );
 }
 
-export default index
+export default InsurerInterface;
