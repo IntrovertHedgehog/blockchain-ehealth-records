@@ -20,7 +20,6 @@ function ContractBtns() {
   const [medicalHistory, setMedicalHistory] = useState("");
   const [medicalHistoryCopy, setMedicalHistoryCopy] = useState("");
   const [updateProfileRecords, setUpdateProfileRecords] = useState("");
-  const [updateProfileCopyRecords, setUpdateProfileCopyRecords] = useState("");
   const [doctorList, setDoctorList] = useState([]);
   const [insurerList, setInsurerList] = useState([]);
   const [doctorAddress, setDoctorAddress] = useState("");
@@ -376,7 +375,7 @@ function ContractBtns() {
       <div className="input-btn">
         <input
           type="text"
-          placeholder="Reader Address"
+          placeholder="Reader's Address"
           value={readerAddress}
           onChange={handleReaderAddressChange}
         ></input>
@@ -394,7 +393,7 @@ function ContractBtns() {
         /> */}
         <input
           type="text"
-          placeholder="Reader Address"
+          placeholder="Reader's Address"
           value={readerAddress}
           onChange={handleReaderAddressChange}
         />

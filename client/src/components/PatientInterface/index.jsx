@@ -1,8 +1,8 @@
 import useEth from "../../contexts/EthContext/useEth";
 import Title from "./Title";
-import ContractBtns from "../HealthRecord/ContractBtns";
-import NoticeNoArtifact from "../HealthRecord/NoticeNoArtifact";
-import NoticeWrongNetwork from "../HealthRecord/NoticeWrongNetwork";
+import ContractBtns from "./ContractBtns";
+import NoticeNoArtifact from "./NoticeNoArtifact";
+import NoticeWrongNetwork from "./NoticeWrongNetwork";
 
 function HealthRecord() {
 	const { state } = useEth();

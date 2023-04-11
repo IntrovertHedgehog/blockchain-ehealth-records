@@ -1,5 +1,5 @@
 import { EthProvider } from "./contexts/EthContext";
-import HealthRecord from "./components/HealthRecord";
+import PatientInterface from "./components/PatientInterface";
 import DoctorInterface from "./components/DoctorInterface";
 import InsurerInterface from "./components/InsurerInterface";
 
@@ -9,7 +9,7 @@ function App() {
     <EthProvider>
       <div id="App">
         <div className="container">
-          <HealthRecord />
+          <PatientInterface />
           <DoctorInterface />
           <InsurerInterface />
         </div>
