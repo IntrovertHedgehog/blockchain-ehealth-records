@@ -70,14 +70,28 @@ contract HealthRecord {
         _;
     }
 
-    // ensure that only doctors and insurers that have been given access can update the record
-    modifier withUpdatePrivilege(address patientAddress) {
+    // // ensure that only doctors and insurers that have been given access can update the record
+    // modifier withUpdatePrivilege(address patientAddress) { not required since only Doctors can update original record, not patients
+    //     PatientProfile storage profile = patientProfiles[patientAddress];
+    //     require(
+    //         patientAddress == msg.sender ||
+    //             profile.doctorNumbers[msg.sender] != 0,
+    //         "You need update privilege to access this function"
+    //     );
+    //     _;
+    // }
+
+    // // ensure that only Patients can use the function, i.e. for updating copyRecord
+    // modifier isPatient(address patientAddress) {
+    //     PatientProfile storage profile = patientProfiles[patientAddress];
+    //     require(patientAddress == msg.sender, "Only the patient can use this function");
+    //     _;
+    // }
+
+    // ensure that only Doctors of specified patient can use the function, i.e. for updating original medical record
+    modifier isDoctor(address patientAddress) {
         PatientProfile storage profile = patientProfiles[patientAddress];
-        require(
-            patientAddress == msg.sender ||
-                profile.doctorNumbers[msg.sender] != 0,
-            "You need update privilege to access this function"
-        );
+        require(profile.doctorNumbers[msg.sender] != 0, "Only doctors of the patient can use this function");
         _;
     }
 
@@ -166,7 +180,7 @@ contract HealthRecord {
     function updateOriginalRecord(
         address patientAddress,
         string calldata newRecord
-    ) public patientIsActive(patientAddress) withUpdatePrivilege(patientAddress) {
+    ) public patientIsActive(patientAddress) isDoctor(patientAddress) {
         patientProfiles[patientAddress].medicalHistory.push(newRecord);
         emit PatientProfileOriginalUpdated(patientAddress, msg.sender);
     }

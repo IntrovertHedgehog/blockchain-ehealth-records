@@ -19,12 +19,18 @@ contract("HealthRecord", function (accounts) {
         assert.deepEqual(medicalHistory, [], "Medical history should be empty");
     })
 
-    it("Add new record to own profile", async () => {
+    // it("Add new record to own profile", async () => {
+    //     const record1 = "MockRecord1";
+    //     const addNewRecord = await healthRecordInstance.updateOriginalRecord(accounts[0], record1, {from : accounts[0]});
+    //     truffleAssert.eventEmitted(addNewRecord, "PatientProfileOriginalUpdated");
+    //     const medicalHistory = await healthRecordInstance.readProfile(accounts[0], true, {from : accounts[0]});
+    //     assert.deepEqual(medicalHistory, [record1], "Medical history does not match");
+    // })
+
+    it("Patient cannot update their original medical record", async () => {
         const record1 = "MockRecord1";
-        const addNewRecord = await healthRecordInstance.updateOriginalRecord(accounts[0], record1, {from : accounts[0]});
-        truffleAssert.eventEmitted(addNewRecord, "PatientProfileOriginalUpdated");
-        const medicalHistory = await healthRecordInstance.readProfile(accounts[0], true, {from : accounts[0]});
-        assert.deepEqual(medicalHistory, [record1], "Medical history does not match");
+        // const addNewRecord = await healthRecordInstance.updateOriginalRecord(accounts[0], record1, {from : accounts[0]});
+        await truffleAssert.fails (healthRecordInstance.updateOriginalRecord(accounts[0], record1, {from : accounts[0]}));
     })
 
     it("Assign new doctor to profile", async () => {
@@ -33,6 +39,14 @@ contract("HealthRecord", function (accounts) {
         const doctorList = await healthRecordInstance.getDoctors({from : accounts[0]});
         const doctorIsListed = doctorList.includes(accounts[1]);
         assert.ok(doctorIsListed, "New doctor is not added to patient profile");
+    })
+
+    it("Doctor add new record to patient profile", async () => {
+        const record1 = "MockRecord1";
+        const addNewRecord = await healthRecordInstance.updateOriginalRecord(accounts[0], record1, {from : accounts[1]});
+        truffleAssert.eventEmitted(addNewRecord, "PatientProfileOriginalUpdated");
+        const medicalHistory = await healthRecordInstance.readProfile(accounts[0], true, {from : accounts[0]});
+        assert.deepEqual(medicalHistory, [record1], "Medical history does not match");
     })
 
     it("Update new record to doctor's copy", async () => {
