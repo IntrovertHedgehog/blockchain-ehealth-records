@@ -412,14 +412,15 @@ contract HealthRecord {
     }
 
     function getValidityCI(
-        address patientAddress
-    ) public view insurerIsActive(msg.sender) returns (bool) {
+        address patientAddress,
+        address insurerAddress
+    ) public view insurerIsActive(insurerAddress) returns (bool) {
         PatientProfile storage profile = patientProfiles[patientAddress];
         require(
-            profile.insurerNumbers[msg.sender] != 0,
+            profile.insurerNumbers[insurerAddress] != 0,
             "This patient is not assigned to the insurance agent"
         );
-        InsurerProfile storage insurer = insurerProfiles[msg.sender];
+        InsurerProfile storage insurer = insurerProfiles[insurerAddress];
         return insurer.validityCI[patientAddress];
     }
 }

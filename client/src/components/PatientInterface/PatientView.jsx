@@ -7,6 +7,9 @@ import {
   importPublicKey,
 } from "../../services/cryptography";
 import { useGlobalState } from "../GlobalState";
+import BigNumber from "bignumber.js";
+
+const oneEth = new BigNumber(1000000000000000000); // 1 eth
 
 const blankAddress = `0x${"0".repeat(40)}`;
 
@@ -25,7 +28,10 @@ export default function PatientView() {
   const [insurerAddress, setInsurerAddress] = useState("");
   const [readerAddress, setReaderAddress] = useState("");
   const [globalState] = useGlobalState();
-  
+  const [value, setValue] = useState("");
+  const [recordIndex, setRecordIndex] = useState("");
+  const [ciValidity, setCIValidity] = useState("");
+
   const myKeys = globalState.myKeys;
 
   const handleUpdateProfileRecord = (e) => {
@@ -115,11 +121,19 @@ export default function PatientView() {
       alert("Please enter a value to write.");
       return;
     }
+
+    const index = (
+      await healthRecord.methods
+        .readProfile(accounts[0], true)
+        .call({ from: accounts[0] })
+    ).length;
+
     const record = JSON.parse(updateProfileRecords);
     record.data.patientAddress = accounts[0];
     record.data.timeCreated = Date.now();
     record.data.createdBy = accounts[0];
     record.data.createdByDoctor = false;
+    record.index = index;
     console.log(record);
     record.data = await encryptData(record.data, myKeys.publicKey);
     console.log(record);
@@ -170,6 +184,7 @@ export default function PatientView() {
         console.log(r);
         return {
           ...r,
+          originalRecord: r.identifier,
           data: JSON.parse(await decryptData(r.data, myKeys.privateKey)),
         };
       })
@@ -236,6 +251,50 @@ export default function PatientView() {
     await healthRecord.methods
       .revokeInsurer(insurerAddress)
       .send({ from: accounts[0] });
+  };
+
+  const purchaseCI = (e) => {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    if (insurerAddress === "" || value === 0) {
+      alert("Please enter a value to write.");
+      return;
+    }
+
+    const valueWei = oneEth.multipliedBy(value).toFixed(0);
+    healthRecord.methods
+      .purchaseCICoverage(insurerAddress)
+      .send({ from: accounts[0], value: valueWei });
+  };
+
+  const submitCI = (e) => {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    if (insurerAddress === "" || recordIndex === null) {
+      alert("Please enter a value to write.");
+      return;
+    }
+
+    healthRecord.methods
+      .submitCriticalIllness(insurerAddress, recordIndex)
+      .send({ from: accounts[0] });
+  };
+
+  const checkValidation = (e) => {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    if (insurerAddress === "" || recordIndex === null) {
+      alert("Please enter a value to write.");
+      return;
+    }
+
+    healthRecord.methods
+      .getValidityCI(accounts[0], insurerAddress)
+      .call({ from: accounts[0] })
+      .then(setCIValidity);
   };
 
   const activateProfile = async (e) => {
@@ -320,6 +379,15 @@ export default function PatientView() {
         {insurerList ? insurerList : <p>No doctors retrieved</p>}
       </div>
 
+      <div style={{ flexDirection: "column" }}>
+        <h3>CI Validity Check</h3>
+        {ciValidity === true ? (
+          <p>Congratulations! Your CI is validated by insurer.</p>
+        ) : ciValidity === false ? (
+          <p>Your CI submission is being processed.</p>
+        ) : null}
+      </div>
+
       <div className="input-btn">
         <textarea
           rows={15}
@@ -380,6 +448,7 @@ export default function PatientView() {
         />
         <button onClick={assignInsurer}>Assign Insurer</button>
       </div>
+
       <div className="input-btn">
         <input
           type="text"
@@ -388,6 +457,47 @@ export default function PatientView() {
           onChange={handleInsurerAddressChange}
         />
         <button onClick={revokeInsurer}>Revoke Insurer</button>
+      </div>
+
+      <div className="input-btn">
+        <input
+          type="text"
+          placeholder="Insurer's Address"
+          value={insurerAddress}
+          onChange={handleInsurerAddressChange}
+        />
+        <input
+          type="number"
+          placeholder="value (ETH)"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <button onClick={purchaseCI}>Purchase CI</button>
+      </div>
+
+      <div className="input-btn">
+        <input
+          type="text"
+          placeholder="Insurer's Address"
+          value={insurerAddress}
+          onChange={handleInsurerAddressChange}
+        />
+        <input
+          type="number"
+          placeholder="CI record index"
+          value={recordIndex}
+          onChange={(e) => setRecordIndex(e.target.value)}
+        />
+        <button onClick={submitCI}>Submit CI</button>
+      </div>
+      <div className="input-btn">
+        <input
+          type="text"
+          placeholder="Insurer's Address"
+          value={insurerAddress}
+          onChange={handleInsurerAddressChange}
+        />
+        <button onClick={checkValidation}>Check CI Validation</button>
       </div>
     </div>
   );

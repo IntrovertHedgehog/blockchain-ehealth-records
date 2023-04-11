@@ -78,12 +78,17 @@ export default function DoctorView() {
 
     console.log(patientKeyPair);
     const patientPublicKey = await importPublicKey(patientKeyPair.publicKey);
-
+    const index = (
+      await healthRecord.methods
+        .readProfile(accounts[0], true)
+        .call({ from: accounts[0] })
+    ).length;
     const record = JSON.parse(updateProfileRecords);
     record.data.patientAddress = patientAddress;
     record.data.timeCreated = Date.now();
     record.data.createdBy = accounts[0];
     record.data.createdByDoctor = true;
+    record.index = index;
     console.log(record);
     record.data = await encryptData(record.data, patientPublicKey);
     console.log(record);
@@ -102,14 +107,16 @@ export default function DoctorView() {
     if (!diff) {
       setIsUpdated("Your copy of patient profile is updated!");
     } else {
-      setIsUpdated(`Your copy is ${diff} record${(diff - 1)? 's' : ''} behind the original.`);
+      setIsUpdated(
+        `Your copy is ${diff} record${diff - 1 ? "s" : ""} behind the original.`
+      );
     }
   };
 
   return (
     <div className="btns">
       <div style={{ flexDirection: "column" }}>
-        <p>Patient's Medical History</p>
+        <h3>Patient's Medical History</h3>
         {patientMedicalHistory ? (
           patientMedicalHistory
         ) : (
@@ -118,7 +125,7 @@ export default function DoctorView() {
       </div>
 
       <div style={{ flexDirection: "column" }}>
-        <p>Check if Copy is Updated</p>
+        <h3>Check if Copy is Updated</h3>
         {isUpdated ? isUpdated : <p>error</p>}
       </div>
 
