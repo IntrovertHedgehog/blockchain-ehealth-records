@@ -101,7 +101,7 @@ contract("HealthRecord", function (accounts) {
         const patientIsInsuredCI = await healthRecordInstance.getPatientIsInsuredCI();
         assert.equal(patientIsInsuredCI, true, "Patient does not have critical illness coverage");
         const insurerCoversPatientCI = await healthRecordInstance.getInsurerCoversPatientCI(accounts[0], {from: accounts[2]});
-        assert.equal(insurerCoversPatientCI, 1, "Insurer does not have patient under critical illness coverage");
+        assert.ok(insurerCoversPatientCI, "Insurer does not have patient under critical illness coverage");
     })
 
     it("Patient purchases critical illness coverage from unassigned insurer", async() => {
@@ -113,7 +113,7 @@ contract("HealthRecord", function (accounts) {
         const submission = await healthRecordInstance.submitCriticalIllness(accounts[2], 0, {from: accounts[0]});
         truffleAssert.eventEmitted(submission, "CIClaimSubmitted");
         const submittedRecord = await healthRecordInstance.getRecordCI(accounts[0], {from: accounts[2]});
-        assert.strictEqual(submittedRecord, "MockRecord1", "The submitted records for critical illness do not match");
+        assert.strictEqual(submittedRecord, "MockRecord1CopyInsurer", "The submitted records for critical illness do not match");
     })
 
     it("Insurer validates patient's critical illness claim", async() => {

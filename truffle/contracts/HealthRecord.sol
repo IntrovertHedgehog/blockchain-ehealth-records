@@ -6,10 +6,11 @@ contract HealthRecord {
     struct PatientProfile {
         bool patientIsActive;
         string[] medicalHistory; // patient's medical history
-        mapping(address => uint) doctorNumbers; // doctor's address mapped to 0 or 1, 0 indicates that he is given access to patient's record, 1 indicates otherwise
-        mapping(address => uint) insurerNumbers; // similar to doctorNumbers
+        // this variable structure helps patients to easily obtain list of doctors
         address[] doctors; // array to keep track of doctors assigned to the patient
         address[] insurers; // similar to doctors
+        mapping(address => uint) doctorNumbers; // The index of this doctor's address in the array `doctors`
+        mapping(address => uint) insurerNumbers; // similar to doctorNumbers
         mapping(address => string[]) medicalHistoryCopies; // doctor and insurer's copies of patient's medical history
         bool isInsuredCI; //checks if patient is insured for critical illness
     }
@@ -17,16 +18,16 @@ contract HealthRecord {
     //added insurer struct *
     struct InsurerProfile {
         bool insurerIsActive;
-        mapping(address => uint) criticalIllness; // mapping to store patient's addresses that have critical illness coverage
+        mapping(address => bool) criticalIllness; // mapping to store patient's addresses that have critical illness coverage
         mapping(address => string) recordCI; // mapping to store patient's relevant record when submitting a claim for critial illness
         mapping(address => bool) validityCI; // mapping to store whether each patient's CI claim is valid
 
         // focus on CI for now, before expanding to disability
         // mapping(address => string) disability;
-        // mapping(address => bool) validityDisability; 
+        // mapping(address => bool) validityDisability;
     }
 
-    mapping(address => PatientProfile) patientProfiles; //mapping of address to patient profile struct
+    mapping(address => PatientProfile) patientProfiles; // mapping of address to patient profile struct
     mapping(address => InsurerProfile) insurerProfiles; // similar to patientProfiles
 
     KeyStore public keyStore;
@@ -54,7 +55,6 @@ contract HealthRecord {
     constructor(KeyStore ks) {
         keyStore = ks;
     }
-
 
     modifier patientIsActive(address patientAddress) {
         require(
@@ -115,7 +115,7 @@ contract HealthRecord {
         );
         InsurerProfile storage insurer = insurerProfiles[insurerAddress];
         require(
-            insurer.criticalIllness[patientAddress] == 1,
+            insurer.criticalIllness[patientAddress],
             "You do not have critical illness coverage under this insurance agent"
         );
         _;
@@ -126,8 +126,8 @@ contract HealthRecord {
         PatientProfile storage profile = patientProfiles[msg.sender];
         profile.patientIsActive = true;
         if (profile.doctors.length == 0) {
-        profile.doctors.push(address(0));
-        profile.insurers.push(address(0));
+            profile.doctors.push(address(0));
+            profile.insurers.push(address(0));
         }
         emit PatientProfileActivated(msg.sender);
     }
@@ -155,11 +155,15 @@ contract HealthRecord {
         withReadPrivilege(patientAddress, msg.sender)
         returns (string[] memory)
     {
-        if (isOriginal || patientAddress == msg.sender) { // view original medical history if patient calls the function
+        if (isOriginal || patientAddress == msg.sender) {
+            // view original medical history if patient calls the function
             return patientProfiles[patientAddress].medicalHistory;
-        } else { // view copy of medical history if doctor or insurer
+        } else {
+            // view copy of medical history if doctor or insurer
             return
-                patientProfiles[patientAddress].medicalHistoryCopies[msg.sender];
+                patientProfiles[patientAddress].medicalHistoryCopies[
+                    msg.sender
+                ];
         }
     }
 
@@ -174,7 +178,11 @@ contract HealthRecord {
     function updateOriginalRecord(
         address patientAddress,
         string calldata newRecord
-    ) public patientIsActive(patientAddress) withUpdatePrivilege(patientAddress) {
+    )
+        public
+        patientIsActive(patientAddress)
+        withUpdatePrivilege(patientAddress)
+    {
         patientProfiles[patientAddress].medicalHistory.push(newRecord);
         emit PatientProfileOriginalUpdated(patientAddress, msg.sender);
     }
@@ -216,7 +224,9 @@ contract HealthRecord {
         return (originalLength - copyLength);
     }
 
-    function assignDoctor(address doctorAddress) public patientIsActive(msg.sender) {
+    function assignDoctor(
+        address doctorAddress
+    ) public patientIsActive(msg.sender) {
         PatientProfile storage profile = patientProfiles[msg.sender];
         require(
             profile.doctorNumbers[doctorAddress] == 0,
@@ -228,7 +238,9 @@ contract HealthRecord {
         emit PatientProfileDoctorAssigned(msg.sender, doctorAddress);
     }
 
-    function assignInsurer(address insurerAddress) public patientIsActive(msg.sender) {
+    function assignInsurer(
+        address insurerAddress
+    ) public patientIsActive(msg.sender) {
         PatientProfile storage profile = patientProfiles[msg.sender];
         require(
             profile.insurerNumbers[insurerAddress] == 0,
@@ -239,7 +251,9 @@ contract HealthRecord {
         emit PatientProfileInsurerAssigned(msg.sender, insurerAddress);
     }
 
-    function revokeDoctor(address doctorAddress) public patientIsActive(msg.sender) {
+    function revokeDoctor(
+        address doctorAddress
+    ) public patientIsActive(msg.sender) {
         PatientProfile storage profile = patientProfiles[msg.sender];
         require(
             profile.doctorNumbers[doctorAddress] != 0,
@@ -251,7 +265,9 @@ contract HealthRecord {
         emit PatientProfileDoctorRevoked(msg.sender, doctorAddress);
     }
 
-    function revokeInsurer(address insurerAddress) public patientIsActive(msg.sender) {
+    function revokeInsurer(
+        address insurerAddress
+    ) public patientIsActive(msg.sender) {
         PatientProfile storage profile = patientProfiles[msg.sender];
         require(
             profile.insurerNumbers[insurerAddress] != 0,
@@ -263,52 +279,100 @@ contract HealthRecord {
         emit PatientProfileInsurerRevoked(msg.sender, insurerAddress);
     }
 
-    function getDoctors() public view patientIsActive(msg.sender) returns (address[] memory) {
+    function getDoctors()
+        public
+        view
+        patientIsActive(msg.sender)
+        returns (address[] memory)
+    {
         return patientProfiles[msg.sender].doctors;
     }
 
-    function getInsurers() public view patientIsActive(msg.sender) returns (address[] memory) {
+    function getInsurers()
+        public
+        view
+        patientIsActive(msg.sender)
+        returns (address[] memory)
+    {
         return patientProfiles[msg.sender].insurers;
     }
 
     // patient purchase critical illness coverage from insurance agent
-    function purchaseCICoverage(address payable insurerAddress) public payable patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
+    function purchaseCICoverage(
+        address payable insurerAddress
+    )
+        public
+        payable
+        patientIsActive(msg.sender)
+        insurerIsActive(insurerAddress)
+    {
         PatientProfile storage profile = patientProfiles[msg.sender];
         require(
-            profile.insurerNumbers[insurerAddress] == 1, 
-            "Cannot purchase coverage from an insurer not assigned to this patient");
-        require(msg.value > 0, "Cannot purchase coverage without providing ether");
+            profile.insurerNumbers[insurerAddress] != 0,
+            "Cannot purchase coverage from an insurer not assigned to this patient"
+        );
+        require(
+            msg.value > 0,
+            "Cannot purchase coverage without providing ether"
+        );
         InsurerProfile storage insurer = insurerProfiles[insurerAddress];
-        insurer.criticalIllness[msg.sender] = 1;
+        insurer.criticalIllness[msg.sender] = true;
         insurerAddress.transfer(msg.value);
         profile.isInsuredCI = true;
         emit CICoveragePurchased(msg.sender, insurerAddress, msg.value);
     }
 
     // Used by patient to submit a CI claim to insurer, along with the medical record
-    function submitCriticalIllness(address insurerAddress, uint recordIndex) public isInsuredCI(msg.sender, insurerAddress) patientIsActive(msg.sender) insurerIsActive(insurerAddress) {
-        // PatientProfile storage profile = patientProfiles[msg.sender];
+    function submitCriticalIllness(
+        address insurerAddress,
+        uint recordIndex
+    )
+        public
+        isInsuredCI(msg.sender, insurerAddress)
+        patientIsActive(msg.sender)
+        insurerIsActive(insurerAddress)
+    {
         InsurerProfile storage insurer = insurerProfiles[insurerAddress];
-        string[] memory medicalRecords = readProfile(msg.sender, true);
-        string memory relevantRecord = medicalRecords[recordIndex];
+        string memory relevantRecord = patientProfiles[msg.sender].medicalHistoryCopies[insurerAddress][recordIndex];
         insurer.recordCI[msg.sender] = relevantRecord;
-        updateCopyRecord(msg.sender, insurerAddress, relevantRecord);
         emit CIClaimSubmitted(msg.sender, insurerAddress, recordIndex);
     }
 
     // run by insurers to validate CI claims
-    function validateCIClaim(address patientAddress) public isInsuredCI(patientAddress, msg.sender) patientIsActive(patientAddress) insurerIsActive(msg.sender) {
+    function validateCIClaim(
+        address patientAddress
+    )
+        public
+        isInsuredCI(patientAddress, msg.sender)
+        patientIsActive(patientAddress)
+        insurerIsActive(msg.sender)
+    {
         InsurerProfile storage insurer = insurerProfiles[msg.sender];
         insurer.validityCI[patientAddress] = true;
         emit CIClaimValidated(patientAddress, msg.sender);
     }
-    
+
     // Used by Insurers to reimburse Patients with valid CI claims, returns msg.value, do we want to add an attribute for bill in the records?
-    function reimburseCIClaim(address payable patientAddress) public payable isInsuredCI(patientAddress, msg.sender) patientIsActive(patientAddress) insurerIsActive(msg.sender) returns (uint){
+    function reimburseCIClaim(
+        address payable patientAddress
+    )
+        public
+        payable
+        isInsuredCI(patientAddress, msg.sender)
+        patientIsActive(patientAddress)
+        insurerIsActive(msg.sender)
+        returns (uint)
+    {
         InsurerProfile storage insurer = insurerProfiles[msg.sender];
         // PatientProfile storage profile = patientProfiles[patientAddress];
-        require(insurer.validityCI[patientAddress] == true, "Please validate the CI claim first.");
-        require(msg.value > 0, "Cannot reimburse critical illness claim without providing ether");
+        require(
+            insurer.validityCI[patientAddress],
+            "Please validate the CI claim first."
+        );
+        require(
+            msg.value > 0,
+            "Cannot reimburse critical illness claim without providing ether"
+        );
         patientAddress.transfer(msg.value);
 
         //reset related mappings
@@ -320,28 +384,41 @@ contract HealthRecord {
         return msg.value;
     }
 
-    function getPatientIsInsuredCI() public view patientIsActive(msg.sender) returns (bool) {
+    function getPatientIsInsuredCI()
+        public
+        view
+        patientIsActive(msg.sender)
+        returns (bool)
+    {
         return patientProfiles[msg.sender].isInsuredCI;
     }
 
-    function getInsurerCoversPatientCI(address patientAddress) public view insurerIsActive(msg.sender) returns (uint256) {
+    function getInsurerCoversPatientCI(
+        address patientAddress
+    ) public view insurerIsActive(msg.sender) returns (bool) {
         return insurerProfiles[msg.sender].criticalIllness[patientAddress];
     }
 
-    function getRecordCI(address patientAddress) public view insurerIsActive(msg.sender) returns (string memory) {
+    function getRecordCI(
+        address patientAddress
+    ) public view insurerIsActive(msg.sender) returns (string memory) {
         PatientProfile storage profile = patientProfiles[patientAddress];
         require(
-            profile.insurerNumbers[msg.sender] == 1, 
-            "This patient is not assigned to the insurance agent");
+            profile.insurerNumbers[msg.sender] != 0,
+            "This patient is not assigned to the insurance agent"
+        );
         InsurerProfile storage insurer = insurerProfiles[msg.sender];
         return insurer.recordCI[patientAddress];
     }
 
-    function getValidityCI(address patientAddress) public view insurerIsActive(msg.sender) returns (bool) {
+    function getValidityCI(
+        address patientAddress
+    ) public view insurerIsActive(msg.sender) returns (bool) {
         PatientProfile storage profile = patientProfiles[patientAddress];
         require(
-            profile.insurerNumbers[msg.sender] == 1, 
-            "This patient is not assigned to the insurance agent");
+            profile.insurerNumbers[msg.sender] != 0,
+            "This patient is not assigned to the insurance agent"
+        );
         InsurerProfile storage insurer = insurerProfiles[msg.sender];
         return insurer.validityCI[patientAddress];
     }
