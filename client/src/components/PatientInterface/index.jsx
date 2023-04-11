@@ -1,8 +1,8 @@
 import { useEth } from "../../contexts/EthContext";
 import Title from "./Title";
 import PatientView from "./PatientView";
-import NoticeNoArtifact from "../Common/NoticeNoArtifact";
-import NoticeWrongNetwork from "../Common/NoticeWrongNetwork";
+import NoticeNoArtifact from "../common/NoticeNoArtifact";
+import NoticeWrongNetwork from "../common/NoticeWrongNetwork";
 
 function PatientInterface() {
   const { state } = useEth();

@@ -4,10 +4,9 @@ import { getRecord, postRecord } from "../../services/records";
 import {
   decryptData,
   encryptData,
-  generateKeyPair,
-  importKeyPair,
   importPublicKey,
 } from "../../services/cryptography";
+import { useGlobalState } from "../GlobalState";
 
 const blankAddress = `0x${"0".repeat(40)}`;
 
@@ -25,9 +24,9 @@ export default function PatientView() {
   const [doctorAddress, setDoctorAddress] = useState("");
   const [insurerAddress, setInsurerAddress] = useState("");
   const [readerAddress, setReaderAddress] = useState("");
-  const [passphrase, setPassphrase] = useState("");
-  const [myKeys, setMyKeys] = useState({});
-  const [showPass, setShowPass] = useState(true);
+  const [globalState] = useGlobalState();
+  
+  const myKeys = globalState.myKeys;
 
   const handleUpdateProfileRecord = (e) => {
     setUpdateProfileRecords(e.target.value);
@@ -43,34 +42,6 @@ export default function PatientView() {
 
   const handleReaderAddressChange = (e) => {
     setReaderAddress(e.target.value);
-  };
-
-  const setNewKeyPair = async () => {
-    const keyPair = await generateKeyPair(passphrase);
-    await keyStore.methods
-      .setKeyPair(keyPair.publish)
-      .send({ from: accounts[0] });
-    setMyKeys(keyPair.bare);
-    console.log(keyPair.bare);
-    setPassphrase("");
-    setShowPass(false);
-  };
-
-  const retrieveKeyPair = async () => {
-    try {
-      const storedKeyPair = await keyStore.methods
-        .keyPairs(accounts[0])
-        .call({ from: accounts[0] });
-      console.log(storedKeyPair);
-      const keyPair = await importKeyPair(storedKeyPair, passphrase);
-      setMyKeys(keyPair);
-      console.log(keyPair);
-      setShowPass(false);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setPassphrase("");
-    }
   };
 
   const readProfile = async () => {
@@ -301,21 +272,6 @@ export default function PatientView() {
 
   return (
     <div className="btns">
-      {showPass && (
-        <div>
-          <input
-            value={passphrase}
-            onChange={(e) => setPassphrase(e.target.value)}
-            type="password"
-          />
-          <button onClick={setNewKeyPair} style={{ marginRight: 10 }}>
-            set new key pair
-          </button>
-          <button onClick={retrieveKeyPair} style={{ marginRight: 10 }}>
-            retrieve key pair
-          </button>
-        </div>
-      )}
       <div>
         <button onClick={readProfile} style={{ marginRight: 10 }}>
           Read My Profile

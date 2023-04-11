@@ -1,8 +1,8 @@
 import React from "react";
 import Title from "./Title";
 import InsurerView from "./InsurerView";
-import NoticeNoArtifact from "../Common/NoticeNoArtifact";
-import NoticeWrongNetwork from "../Common/NoticeWrongNetwork";
+import NoticeNoArtifact from "../common/NoticeNoArtifact";
+import NoticeWrongNetwork from "../common/NoticeWrongNetwork";
 import { useEth } from "../../contexts/EthContext";
 
 function InsurerInterface() {

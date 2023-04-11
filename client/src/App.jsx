@@ -2,6 +2,7 @@ import { EthProvider } from "./contexts/EthContext";
 import PatientInterface from "./components/PatientInterface";
 import DoctorInterface from "./components/DoctorInterface";
 import InsurerInterface from "./components/InsurerInterface";
+import Passphrase from "./components/common/Passphrase";
 
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
     <EthProvider>
       <div id="App">
         <div className="container">
+          <Passphrase />
           <PatientInterface />
           <DoctorInterface />
           <InsurerInterface />
