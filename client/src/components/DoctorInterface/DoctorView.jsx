@@ -80,7 +80,7 @@ export default function DoctorView() {
     const patientPublicKey = await importPublicKey(patientKeyPair.publicKey);
     const index = (
       await healthRecord.methods
-        .readProfile(accounts[0], true)
+        .readProfile(patientAddress, true)
         .call({ from: accounts[0] })
     ).length;
     const record = JSON.parse(updateProfileRecords);
@@ -93,6 +93,7 @@ export default function DoctorView() {
     record.data = await encryptData(record.data, patientPublicKey);
     console.log(record);
     const id = await postRecord(record);
+    console.log(patientAddress);
     if (id) {
       await healthRecord.methods
         .updateOriginalRecord(patientAddress, id)
@@ -104,7 +105,7 @@ export default function DoctorView() {
     const diff = await healthRecord.methods
       .copyRecordIsUpdated(patientAddress, accounts[0])
       .call({ from: accounts[0] });
-    if (diff == 0) {
+    if (diff === 0) {
       setIsUpdated("Your copy of patient profile is updated!");
     } else {
       setIsUpdated(

@@ -119,7 +119,7 @@ contract("HealthRecord", function (accounts) {
     it("Insurer validates patient's critical illness claim", async() => {
         const validation = await healthRecordInstance.validateCIClaim(accounts[0], {from: accounts[2]});
         truffleAssert.eventEmitted(validation, "CIClaimValidated");
-        const isValidCI = await healthRecordInstance.getValidityCI(accounts[0], {from: accounts[2]});
+        const isValidCI = await healthRecordInstance.getValidityCI(accounts[0], accounts[2], {from: accounts[2]});
         assert.strictEqual(isValidCI, true, "The validation for the submitted record did not work properly");
     })
 
@@ -129,7 +129,7 @@ contract("HealthRecord", function (accounts) {
         truffleAssert.eventEmitted(reimbursement, "CIClaimReimbursed");
         const submittedRecord = await healthRecordInstance.getRecordCI(accounts[0], {from: accounts[2]});
         assert.strictEqual(submittedRecord, "", "The submitted record was not deleted");
-        const isValidCI = await healthRecordInstance.getValidityCI(accounts[0], {from: accounts[2]});
+        const isValidCI = await healthRecordInstance.getValidityCI(accounts[0], accounts[2], {from: accounts[2]});
         assert.strictEqual(isValidCI, false, "The submitted record was not deleted");
     })
 })
