@@ -72,7 +72,7 @@ export default function InsurerView() {
   const copyRecordIsUpdated = async () => {
     const diff = await healthRecord.methods
       .copyRecordIsUpdated(patientAddress, accounts[0])
-      .call({ from: accounts[0] });
+      .call({ from: accounts[0] }).then(Number);
     if (diff === 0) {
       setIsUpdated("Your copy of patient profile is updated!");
     } else {
