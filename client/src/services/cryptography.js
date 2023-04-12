@@ -16,18 +16,23 @@ function ab2str(ab) {
   return str;
 }
 
-function toPem(key) {
+function toPem(key, isPrivateKey) {
+  const [pemHeader, pemFooter] = isPrivateKey
+    ? ["-----BEGIN ENCRYPTED PRIVATE KEY-----\n", "\n-----END ENCRYPTED PRIVATE KEY-----"]
+    : ["-----BEGIN PUBLIC KEY-----\n", "\n-----END PUBLIC KEY-----"];
+
   return (
-    "-----BEGIN PRIVATE KEY-----\n" +
+    pemHeader +
     window.btoa(ab2str(key)) +
-    "\n-----END PRIVATE KEY-----"
+    pemFooter
   );
 }
 
-function importKey(pem) {
-  // fetch the part of the PEM string between header and footer
-  const pemHeader = "-----BEGIN PRIVATE KEY-----";
-  const pemFooter = "-----END PRIVATE KEY-----";
+function importKey(pem, isPrivateKey) {
+  const [pemHeader, pemFooter] = isPrivateKey
+  ? ["-----BEGIN ENCRYPTED PRIVATE KEY-----\n", "\n-----END ENCRYPTED PRIVATE KEY-----"]
+  : ["-----BEGIN PUBLIC KEY-----\n", "\n-----END PUBLIC KEY-----"];
+
   const pemContents = pem.substring(
     pemHeader.length,
     pem.length - pemFooter.length
@@ -41,7 +46,7 @@ function importKey(pem) {
 }
 
 export async function importPublicKey(publicPem) {
-  const publicKeyab = importKey(publicPem);
+  const publicKeyab = importKey(publicPem, false);
   const publicKey = await window.crypto.subtle.importKey(
     "spki",
     publicKeyab,
@@ -57,12 +62,12 @@ export async function importPublicKey(publicPem) {
 }
 
 export async function importKeyPair(keyPair, password) {
-  const publicKey = await importPublicKey(keyPair.publicKey)
+  const publicKey = await importPublicKey(keyPair.publicKey);
 
   const salt = keyPair.salt;
   const iv = keyPair.iv;
 
-  const privateKeyab = importKey(keyPair.privateKey);
+  const privateKeyab = importKey(keyPair.privateKey, true);
   const saltab = str2ab(window.atob(salt));
   const ivab = str2ab(window.atob(iv));
   const keyMaterial = await getKeyMaterial(password);
@@ -163,19 +168,19 @@ export async function generateKeyPair(password) {
 
   const publicKey = await window.crypto.subtle
     .exportKey("spki", bareKeys.publicKey)
-    .then(toPem);
+    .then((k) => toPem(k, false));
 
   const wrappedPrivateKey = await wrapCryptoKey(
     password,
     bareKeys.privateKey
   ).then((keyset) => ({
     ...keyset,
-    privateKey: toPem(keyset.privateKey),
+    privateKey: toPem(keyset.privateKey, true),
   }));
 
   return {
     publish: { publicKey: publicKey, ...wrappedPrivateKey },
-    bare: bareKeys
+    bare: bareKeys,
   };
 }
 

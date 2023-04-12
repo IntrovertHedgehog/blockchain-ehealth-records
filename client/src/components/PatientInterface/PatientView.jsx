@@ -28,6 +28,7 @@ export default function PatientView() {
   const [insurerAddress, setInsurerAddress] = useState("");
   const [readerAddress, setReaderAddress] = useState("");
   const [globalState] = useGlobalState();
+  const [isCICoverred, setIsCICoverred] = useState('');
   const [value, setValue] = useState("");
   const [recordIndex, setRecordIndex] = useState("");
   const [ciValidity, setCIValidity] = useState("");
@@ -134,7 +135,8 @@ export default function PatientView() {
     record.data.createdBy = accounts[0];
     record.data.createdByDoctor = false;
     record.index = index;
-    console.log(record);
+    const rawRecord = record.data;
+    console.log(rawRecord);
     record.data = await encryptData(record.data, myKeys.publicKey);
     console.log(record);
     const id = await postRecord(record);
@@ -276,6 +278,12 @@ export default function PatientView() {
       .send({ from: accounts[0], value: valueWei });
   };
 
+  const checCICoverage = (e) => {
+    healthRecord.methods.getPatientIsInsuredCI()
+      .call({ from: accounts[0] })
+      .then(setIsCICoverred);
+  };
+
   const submitCI = (e) => {
     if (e.target.tagName === "INPUT") {
       return;
@@ -361,6 +369,9 @@ export default function PatientView() {
         <button onClick={getInsurers} style={{ marginLeft: 10 }}>
           Get My Insurers
         </button>
+        <button onClick={checCICoverage} style={{ marginLeft: 10 }}>
+          Check CI Insured
+        </button>
       </div>
 
       <div style={{ flexDirection: "column" }}>
@@ -387,6 +398,15 @@ export default function PatientView() {
         {insurerList ? insurerList : <p>No doctors retrieved</p>}
       </div>
 
+      <div style={{ flexDirection: "column" }}>
+        <h3>CI Coverage Status</h3>
+        {isCICoverred === true ? (
+          <p>Your critical illness is coverred</p>
+        ) : isCICoverred === false ? (
+          <p>Your critical illness is <b>not</b> coverred</p>
+        ) : null}
+      </div>
+      
       <div style={{ flexDirection: "column" }}>
         <h3>CI Validity Check</h3>
         {ciValidity === true ? (
