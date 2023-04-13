@@ -8,8 +8,8 @@ const serviceAccount = require("./permission.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://blockchain-ehealth-records.firebaseio.com",
-  // databaseURL: "http://127.0.0.1:8080.firebaseio.com",
+  // databaseURL: "https://blockchain-ehealth-records.firebaseio.com",
+  databaseURL: "http://127.0.0.1:8080.firebaseio.com",
 });
 
 const db = admin.firestore();
