@@ -1,26 +1,27 @@
-import axios from 'axios';
+import axios from "axios";
 
 const recordClient = axios.create({
-  baseURL: 'http://127.0.0.1:5001/blockchain-ehealth-records/us-central1/app',
-})
+  // baseURL: 'http://127.0.0.1:5001/blockchain-ehealth-records/us-central1/app',
+  baseURL: "https://us-central1-blockchain-ehealth-records.cloudfunctions.net/app",
+});
 
 export async function getRecord(id) {
   try {
     const res = await recordClient.get(`api/main-records/${id}`);
     console.log(res);
     return res.data;
-  } catch(error) {
+  } catch (error) {
     console.error(error);
-    return '';
+    return "";
   }
 }
 
 export async function postRecord(record) {
   try {
-    const res =  await recordClient.post('api/main-records', record);
+    const res = await recordClient.post("api/main-records", record);
     return res.data.identifier;
-  } catch(error) {
+  } catch (error) {
     console.error(error);
-    return '';
+    return "";
   }
 }
