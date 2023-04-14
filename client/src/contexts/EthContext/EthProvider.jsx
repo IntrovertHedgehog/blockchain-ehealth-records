@@ -30,10 +30,10 @@ function EthProvider({ children }) {
   useEffect(() => {
     const tryInit = async () => {
       try {
-        const keyStore = require("../../contracts/KeyStore.json");
         const healthRecord = require("../../contracts/HealthRecord.json");
-        init(keyStore);
+        const keyStore = require("../../contracts/KeyStore.json");
         init(healthRecord);
+        init(keyStore);
       } catch (err) {
         console.error(err);
       }
